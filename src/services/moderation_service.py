@@ -1,8 +1,12 @@
+import logging
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.dto.schemas import ModerationDecisionDTO
 from src.models.entities import Listing, ListingStatus
+
+logger = logging.getLogger(__name__)
 
 
 class ModerationService:
@@ -31,5 +35,5 @@ class ModerationService:
             listing.rejection_reason = payload.rejection_reason.strip()
         self.db.commit()
         self.db.refresh(listing)
+        logger.info("Listing moderated listing_id=%s status=%s", listing.id, listing.status)
         return listing
-

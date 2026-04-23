@@ -1,9 +1,13 @@
+import logging
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from src.dto.schemas import MessageCreateDTO
+from src.dto.schemas import DeleteResponseDTO, MessageCreateDTO
 from src.models.entities import Listing, ListingStatus, Message, User
 from src.repositories.message_repository import MessageRepository
+
+logger = logging.getLogger(__name__)
 
 
 class MessageService:
@@ -37,8 +41,27 @@ class MessageService:
         )
         self.messages.add(message)
         self.db.commit()
+        logger.info(
+            "Message sent message_id=%s listing_id=%s sender_id=%s recipient_id=%s",
+            message.id,
+            message.listing_id,
+            sender.id,
+            recipient.id,
+        )
         return message
 
     def list_user_messages(self, user_id: int) -> list[Message]:
         return self.messages.list_for_user(user_id)
 
+    def get_user_message(self, message_id: int, user_id: int) -> Message:
+        message = self.messages.get_for_user(message_id, user_id)
+        if message is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+        return message
+
+    def delete_user_message(self, message_id: int, user_id: int) -> DeleteResponseDTO:
+        message = self.get_user_message(message_id, user_id)
+        self.messages.delete(message)
+        self.db.commit()
+        logger.info("Message deleted message_id=%s user_id=%s", message_id, user_id)
+        return DeleteResponseDTO(message="Message deleted")

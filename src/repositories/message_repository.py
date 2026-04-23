@@ -13,3 +13,12 @@ class MessageRepository(Repository[Message]):
             .all()
         )
 
+    def get_for_user(self, message_id: int, user_id: int) -> Message | None:
+        return (
+            self.db.query(Message)
+            .filter(
+                Message.id == message_id,
+                ((Message.sender_id == user_id) | (Message.recipient_id == user_id)),
+            )
+            .one_or_none()
+        )

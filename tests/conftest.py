@@ -73,12 +73,19 @@ def seeded_users(db_session):
         password_hash="hashed",
         role=Role.USER,
     )
-    db_session.add_all([owner, moderator, buyer])
+    admin = User(
+        email="admin@example.com",
+        full_name="Admin User",
+        password_hash="hashed",
+        role=Role.ADMIN,
+    )
+    db_session.add_all([owner, moderator, buyer, admin])
     db_session.commit()
     db_session.refresh(owner)
     db_session.refresh(moderator)
     db_session.refresh(buyer)
-    return {"owner": owner, "moderator": moderator, "buyer": buyer}
+    db_session.refresh(admin)
+    return {"owner": owner, "moderator": moderator, "buyer": buyer, "admin": admin}
 
 
 @pytest.fixture

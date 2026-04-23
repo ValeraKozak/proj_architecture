@@ -9,3 +9,6 @@ class CategoryRepository(Repository[Category]):
     def get_by_name(self, name: str) -> Category | None:
         return self.db.query(Category).filter(Category.name == name).one_or_none()
 
+    def has_related_listings(self, category_id: int) -> bool:
+        category = self.get(category_id)
+        return bool(category and category.listings)

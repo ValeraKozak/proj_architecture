@@ -22,3 +22,5 @@ class Repository(Generic[ModelType]):
     def list_all(self) -> list[ModelType]:
         return list(self.db.query(self.model).all())
 
+    def delete(self, entity: ModelType) -> None:
+        self.db.delete(entity)

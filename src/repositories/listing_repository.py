@@ -12,3 +12,5 @@ class ListingRepository(Repository[Listing]):
     def list_for_moderation(self) -> list[Listing]:
         return list(self.db.query(Listing).filter(Listing.status == ListingStatus.PENDING).all())
 
+    def list_owned(self, owner_id: int) -> list[Listing]:
+        return list(self.db.query(Listing).filter(Listing.owner_id == owner_id).all())

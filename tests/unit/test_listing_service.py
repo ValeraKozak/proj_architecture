@@ -114,3 +114,50 @@ def test_update_listing_resets_status(db_session, owner_and_category, title, pri
     assert updated.status == ListingStatus.PENDING
     assert updated.rejection_reason is None
 
+
+def test_get_owned_listings_returns_owner_items(db_session, owner_and_category):
+    owner, category = owner_and_category
+    service = ListingService(db_session)
+    service.create(
+        ListingCreateDTO(
+            title="Owner listing",
+            description="Detailed description for owner listing in owned list test.",
+            price=50,
+            category_id=category.id,
+        ),
+        owner,
+    )
+    listings = service.get_owned(owner)
+    assert len(listings) == 1
+
+
+def test_get_listing_by_id_visible_for_owner(db_session, owner_and_category):
+    owner, category = owner_and_category
+    service = ListingService(db_session)
+    listing = service.create(
+        ListingCreateDTO(
+            title="Hidden listing",
+            description="Pending listing with enough details for owner access.",
+            price=75,
+            category_id=category.id,
+        ),
+        owner,
+    )
+    fetched = service.get_by_id(listing.id, owner)
+    assert fetched.id == listing.id
+
+
+def test_delete_listing_archives_listing(db_session, owner_and_category):
+    owner, category = owner_and_category
+    service = ListingService(db_session)
+    listing = service.create(
+        ListingCreateDTO(
+            title="Archive me",
+            description="Listing description long enough for archive deletion scenario.",
+            price=42,
+            category_id=category.id,
+        ),
+        owner,
+    )
+    result = service.delete(listing.id, owner)
+    assert result.status == ListingStatus.ARCHIVED

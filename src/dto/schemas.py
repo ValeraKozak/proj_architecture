@@ -26,12 +26,27 @@ class UserReadDTO(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class UserUpdateDTO(BaseModel):
+    full_name: str = Field(min_length=2, max_length=255)
+
+
+class UserAdminUpdateDTO(BaseModel):
+    full_name: str | None = Field(default=None, min_length=2, max_length=255)
+    role: Role | None = None
+    is_blocked: bool | None = None
+
+
 class TokenDTO(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
 
 class CategoryCreateDTO(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    description: str = Field(min_length=5, max_length=255)
+
+
+class CategoryUpdateDTO(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     description: str = Field(min_length=5, max_length=255)
 
@@ -75,6 +90,11 @@ class ListingReadDTO(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ListingDeleteDTO(BaseModel):
+    message: str
+    status: ListingStatus
+
+
 class ModerationDecisionDTO(BaseModel):
     approved: bool
     rejection_reason: str | None = Field(default=None, max_length=255)
@@ -96,3 +116,6 @@ class MessageReadDTO(BaseModel):
 
     model_config = {"from_attributes": True}
 
+
+class DeleteResponseDTO(BaseModel):
+    message: str

@@ -97,6 +97,22 @@ def test_send_message_rejects_unapproved_listing(db_session, message_context):
         )
 
 
+def test_get_and_delete_user_message(db_session, message_context):
+    service = MessageService(db_session)
+    message = service.send(
+        MessageCreateDTO(
+            listing_id=message_context["listing"].id,
+            recipient_id=message_context["owner"].id,
+            body="Checking message retrieval flow.",
+        ),
+        message_context["buyer"],
+    )
+    fetched = service.get_user_message(message.id, message_context["buyer"].id)
+    assert fetched.id == message.id
+    result = service.delete_user_message(message.id, message_context["buyer"].id)
+    assert result.message == "Message deleted"
+
+
 @pytest.mark.parametrize(
     ("approved", "reason", "expected_status"),
     [
@@ -129,4 +145,3 @@ def test_moderation_requires_reason_for_rejection(db_session, message_context):
             message_context["pending_listing"].id,
             ModerationDecisionDTO(approved=False, rejection_reason=None),
         )
-
