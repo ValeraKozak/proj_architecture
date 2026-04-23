@@ -71,6 +71,7 @@ docker compose up --build
 - [Use Case Diagram](docs/diagrams/use-case-diagram.mmd)
 - [ER Diagram](docs/diagrams/er-diagram.mmd)
 - [Class Diagram](docs/diagrams/class-diagram.mmd)
+- [Фінальна презентація](docs/presentation/final-presentation-notes.md)
 
 ## API
 - Swagger UI: `/docs`
@@ -88,6 +89,7 @@ docker compose up --build
 3. Запустити `docker compose up --build`.
 4. Відкрити `http://localhost:8000/docs`.
 5. Для продакшн-середовища замінити `APP_SECRET_KEY` і паролі БД.
+6. Після push у `main` CD workflow публікує контейнер у GitHub Container Registry.
 
 ## Безпека
 - JWT для автентифікації;
