@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     log_level: str = "INFO"
 
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_")
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_", extra="ignore")
 
 
 @lru_cache
