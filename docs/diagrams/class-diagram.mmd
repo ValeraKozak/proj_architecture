@@ -1,0 +1,46 @@
+classDiagram
+    class User {
+        +int id
+        +string email
+        +string full_name
+        +string password_hash
+        +Role role
+        +bool is_blocked
+    }
+
+    class Category {
+        +int id
+        +string name
+        +string description
+    }
+
+    class Listing {
+        +int id
+        +string title
+        +string description
+        +float price
+        +ListingStatus status
+        +string rejection_reason
+    }
+
+    class Message {
+        +int id
+        +string body
+    }
+
+    class AuthService
+    class UserService
+    class CategoryService
+    class ListingService
+    class MessageService
+    class ModerationService
+    class Repository~T~
+
+    User "1" --> "*" Listing : owns
+    Category "1" --> "*" Listing : classifies
+    Listing "1" --> "*" Message : includes
+    User "1" --> "*" Message : sends/receives
+    CategoryService --> Repository~T~
+    ListingService --> Repository~T~
+    MessageService --> Repository~T~
+    UserService --> Repository~T~

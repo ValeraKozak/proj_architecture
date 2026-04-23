@@ -17,7 +17,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[dev]
       - name: Lint
-        run: ruff check .
+        run: ruff check . | tee ruff-report.txt
       - name: Test
-        run: pytest --cov=src --cov-report=term-missing
-
+        run: pytest --cov=src --cov-report=term-missing --cov-report=xml --junitxml=pytest-report.xml
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: |
+            coverage.xml
+            pytest-report.xml
+            ruff-report.txt

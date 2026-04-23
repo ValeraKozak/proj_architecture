@@ -19,6 +19,7 @@
 - PostgreSQL / SQLite
 - PyTest
 - Docker
+- GitHub Actions
 
 ## Структура
 ```text
@@ -44,6 +45,7 @@ docs/
 python -m venv .venv
 . .venv/Scripts/activate
 pip install -e .[dev]
+copy .env.example .env
 uvicorn src.main:app --reload
 ```
 
@@ -54,6 +56,7 @@ pytest --cov=src --cov-report=term-missing
 
 ## Docker
 ```bash
+copy .env.example .env
 docker compose up --build
 ```
 
@@ -61,12 +64,36 @@ docker compose up --build
 - [Вимоги](docs/spec/requirements.md)
 - [Архітектура](docs/spec/architecture.md)
 - [База даних](docs/spec/database.md)
+- [API та OpenAPI](docs/spec/api.md)
+- [Розгортання та CI/CD](docs/spec/deployment.md)
 - [Тестування](docs/spec/testing.md)
 - [Доменна модель](docs/diagrams/domain-model.md)
+- [Use Case Diagram](docs/diagrams/use-case-diagram.mmd)
+- [ER Diagram](docs/diagrams/er-diagram.mmd)
+- [Class Diagram](docs/diagrams/class-diagram.mmd)
+
+## API
+- Swagger UI: `/docs`
+- ReDoc: `/redoc`
+- healthcheck: `/health`
+
+## Розгалуження
+- `main`: стабільна гілка, готова до демонстрації або релізу.
+- feature branches: окремі гілки під задачі, наприклад `feature/full-crud`.
+- pull request: злиття в `main` після проходження CI.
+
+## Розгортання
+1. Створити `.env` на основі `.env.example`.
+2. Переконатися, що Docker і Docker Compose доступні.
+3. Запустити `docker compose up --build`.
+4. Відкрити `http://localhost:8000/docs`.
+5. Для продакшн-середовища замінити `APP_SECRET_KEY` і паролі БД.
 
 ## Безпека
 - JWT для автентифікації;
 - RBAC для модерації та керування категоріями;
 - Pydantic валідація;
 - ORM для захисту від SQL injection;
-- явні перевірки прав доступу в сервісному шарі.
+- явні перевірки прав доступу в сервісному шарі;
+- `.env` для секретів і середовищних налаштувань;
+- структуроване логування HTTP-запитів.

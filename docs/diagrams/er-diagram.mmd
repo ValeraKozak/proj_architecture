@@ -1,0 +1,40 @@
+erDiagram
+    USERS ||--o{ LISTINGS : owns
+    CATEGORIES ||--o{ LISTINGS : groups
+    LISTINGS ||--o{ MESSAGES : contains
+    USERS ||--o{ MESSAGES : sends
+    USERS ||--o{ MESSAGES : receives
+
+    USERS {
+        int id PK
+        string email
+        string full_name
+        string password_hash
+        string role
+        bool is_blocked
+    }
+
+    CATEGORIES {
+        int id PK
+        string name
+        string description
+    }
+
+    LISTINGS {
+        int id PK
+        string title
+        text description
+        float price
+        string status
+        string rejection_reason
+        int owner_id FK
+        int category_id FK
+    }
+
+    MESSAGES {
+        int id PK
+        int listing_id FK
+        int sender_id FK
+        int recipient_id FK
+        text body
+    }

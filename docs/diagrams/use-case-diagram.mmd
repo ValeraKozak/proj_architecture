@@ -1,0 +1,16 @@
+flowchart TD
+    Guest([Гість]) --> ViewListings[Перегляд схвалених оголошень]
+    Guest --> ViewCategories[Перегляд категорій]
+    User([Користувач]) --> Register[Реєстрація]
+    User --> Login[Авторизація]
+    User --> CreateListing[Створення оголошення]
+    User --> UpdateListing[Редагування оголошення]
+    User --> ArchiveListing[Архівація оголошення]
+    User --> SendMessage[Надсилання повідомлення]
+    User --> ViewOwnListings[Перегляд власних оголошень]
+    Moderator([Модератор]) --> ReviewQueue[Перегляд черги модерації]
+    Moderator --> ApproveListing[Схвалення оголошення]
+    Moderator --> RejectListing[Відхилення оголошення]
+    Admin([Адміністратор]) --> ManageCategories[Керування категоріями]
+    Admin --> ManageUsers[Керування користувачами]
+    Admin --> ReviewQueue
