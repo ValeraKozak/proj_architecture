@@ -1,3 +1,5 @@
+import logging
+import time
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
@@ -11,6 +13,7 @@ class Base(DeclarativeBase):
     pass
 
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
 engine_kwargs = {"future": True, "connect_args": connect_args}
@@ -26,3 +29,20 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+def initialize_database(max_attempts: int = 10, delay_seconds: float = 2.0) -> None:
+    for attempt in range(1, max_attempts + 1):
+        try:
+            Base.metadata.create_all(bind=engine)
+            logger.info("Database schema initialized")
+            return
+        except Exception:  # pragma: no cover - integration safety net
+            logger.exception(
+                "Database initialization failed on attempt %s/%s",
+                attempt,
+                max_attempts,
+            )
+            if attempt == max_attempts:
+                raise
+            time.sleep(delay_seconds)
