@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from src.core.security import get_current_user, require_role
 from src.db.database import get_db
-from src.dto.schemas import ListingCreateDTO, ListingDeleteDTO, ListingReadDTO, ListingUpdateDTO
+from src.dto.schemas import DeleteResponseDTO, ListingCreateDTO, ListingReadDTO, ListingUpdateDTO
 from src.models.entities import Role, User
 from src.services.listing_service import ListingService
 
@@ -64,10 +64,10 @@ def get_listing(
     return ListingService(db).get_by_id(listing_id, current_user)
 
 
-@router.delete("/{listing_id}", response_model=ListingDeleteDTO)
+@router.delete("/{listing_id}", response_model=DeleteResponseDTO)
 def delete_listing(
     listing_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> ListingDeleteDTO:
+) -> DeleteResponseDTO:
     return ListingService(db).delete(listing_id, current_user)

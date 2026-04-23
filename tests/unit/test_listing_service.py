@@ -160,4 +160,6 @@ def test_delete_listing_archives_listing(db_session, owner_and_category):
         owner,
     )
     result = service.delete(listing.id, owner)
-    assert result.status == ListingStatus.ARCHIVED
+    assert result.message == "Listing deleted"
+    with pytest.raises(HTTPException):
+        service.get_by_id(listing.id, owner)

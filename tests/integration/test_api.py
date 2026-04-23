@@ -154,7 +154,7 @@ def test_listing_detail_owned_list_and_archive_flow(
         headers=auth_header(seeded_users["owner"].email),
     )
     assert delete_response.status_code == 200
-    assert delete_response.json()["status"] == "archived"
+    assert delete_response.json()["message"] == "Listing deleted"
 
 
 def test_users_admin_and_profile_endpoints(client, seeded_users):

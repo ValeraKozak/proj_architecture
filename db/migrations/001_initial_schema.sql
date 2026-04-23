@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS listings (
     price NUMERIC(12, 2) NOT NULL,
     status VARCHAR(32) NOT NULL DEFAULT 'draft',
     rejection_reason VARCHAR(255),
-    owner_id INTEGER NOT NULL REFERENCES users(id),
+    owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     category_id INTEGER NOT NULL REFERENCES categories(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -29,10 +29,9 @@ CREATE TABLE IF NOT EXISTS listings (
 
 CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY,
-    listing_id INTEGER NOT NULL REFERENCES listings(id),
+    listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
     sender_id INTEGER NOT NULL REFERENCES users(id),
     recipient_id INTEGER NOT NULL REFERENCES users(id),
     body TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-

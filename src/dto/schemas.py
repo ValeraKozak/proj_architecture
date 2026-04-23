@@ -90,11 +90,6 @@ class ListingReadDTO(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class ListingDeleteDTO(BaseModel):
-    message: str
-    status: ListingStatus
-
-
 class ModerationDecisionDTO(BaseModel):
     approved: bool
     rejection_reason: str | None = Field(default=None, max_length=255)

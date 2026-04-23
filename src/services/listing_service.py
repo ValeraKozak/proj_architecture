@@ -3,7 +3,7 @@ import logging
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from src.dto.schemas import ListingCreateDTO, ListingDeleteDTO, ListingUpdateDTO
+from src.dto.schemas import DeleteResponseDTO, ListingCreateDTO, ListingUpdateDTO
 from src.models.entities import Category, Listing, ListingStatus, Role, User
 from src.repositories.listing_repository import ListingRepository
 
@@ -71,12 +71,12 @@ class ListingService:
     def get_for_moderation(self) -> list[Listing]:
         return self.listings.list_for_moderation()
 
-    def delete(self, listing_id: int, owner: User) -> ListingDeleteDTO:
+    def delete(self, listing_id: int, owner: User) -> DeleteResponseDTO:
         listing = self._get_owned_listing(listing_id, owner.id)
-        listing.status = ListingStatus.ARCHIVED
+        self.listings.delete(listing)
         self.db.commit()
-        logger.info("Listing archived listing_id=%s owner_id=%s", listing.id, owner.id)
-        return ListingDeleteDTO(message="Listing archived", status=listing.status)
+        logger.info("Listing deleted listing_id=%s owner_id=%s", listing.id, owner.id)
+        return DeleteResponseDTO(message="Listing deleted")
 
     def _get_owned_listing(self, listing_id: int, owner_id: int) -> Listing:
         listing = self.listings.get(listing_id)

@@ -32,7 +32,10 @@ class User(Base):
     is_blocked: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    listings: Mapped[list["Listing"]] = relationship(back_populates="owner")
+    listings: Mapped[list["Listing"]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan",
+    )
     sent_messages: Mapped[list["Message"]] = relationship(
         back_populates="sender", foreign_keys="Message.sender_id"
     )
@@ -60,7 +63,7 @@ class Listing(Base):
     price: Mapped[float] = mapped_column(Float())
     status: Mapped[ListingStatus] = mapped_column(Enum(ListingStatus), default=ListingStatus.DRAFT)
     rejection_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -69,14 +72,17 @@ class Listing(Base):
 
     owner: Mapped[User] = relationship(back_populates="listings")
     category: Mapped[Category] = relationship(back_populates="listings")
-    messages: Mapped[list["Message"]] = relationship(back_populates="listing")
+    messages: Mapped[list["Message"]] = relationship(
+        back_populates="listing",
+        cascade="all, delete-orphan",
+    )
 
 
 class Message(Base):
     __tablename__ = "messages"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id"))
+    listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id", ondelete="CASCADE"))
     sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     recipient_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     body: Mapped[str] = mapped_column(Text())
