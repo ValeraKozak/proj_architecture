@@ -99,6 +99,7 @@ Frontend у Docker запускається як production build через `ng
 - [Архітектура](docs/spec/architecture.md)
 - [База даних](docs/spec/database.md)
 - [API та OpenAPI](docs/spec/api.md)
+- [Frontend User Guide](docs/spec/frontend.md)
 - [Розгортання та CI/CD](docs/spec/deployment.md)
 - [Тестування](docs/spec/testing.md)
 - [Доменна модель](docs/diagrams/domain-model.md)
