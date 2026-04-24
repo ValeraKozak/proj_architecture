@@ -15,7 +15,14 @@ def test_postgres_migrations_create_expected_tables():
     inspector = inspect(engine)
     table_names = set(inspector.get_table_names())
 
-    assert {"users", "categories", "listings", "messages", "schema_migrations"} <= table_names
+    assert {
+        "users",
+        "categories",
+        "listings",
+        "listing_images",
+        "messages",
+        "schema_migrations",
+    } <= table_names
 
 
 def test_postgres_tracks_applied_migrations():
@@ -27,4 +34,4 @@ def test_postgres_tracks_applied_migrations():
             for (version,) in db.execute(text("SELECT version FROM schema_migrations"))
         }
 
-    assert "001_initial_schema.sql" in applied_versions
+    assert {"001_initial_schema.sql", "002_add_listing_images.sql"} <= applied_versions

@@ -275,10 +275,69 @@ main {
 .listing-card,
 .empty-card,
 .category-pill {
-  padding: 22px;
   border-radius: 24px;
   border: 1px solid rgba(23, 24, 26, 0.08);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 242, 230, 0.78));
+}
+
+.listing-card {
+  overflow: hidden;
+}
+
+.listing-card > :not(.listing-card__visual) {
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.listing-card__footer {
+  padding-bottom: 22px;
+}
+
+.empty-card,
+.category-pill {
+  padding: 22px;
+}
+
+.listing-card__visual {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(31, 140, 106, 0.18), rgba(215, 156, 48, 0.18));
+}
+
+.listing-card__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.listing-card__placeholder {
+  height: 100%;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.45), transparent 32%),
+    linear-gradient(145deg, rgba(31, 140, 106, 0.9), rgba(215, 156, 48, 0.78));
+  color: #fffaf2;
+}
+
+.listing-card__placeholder span,
+.listing-card__placeholder strong {
+  display: block;
+}
+
+.listing-card__placeholder span {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.listing-card__placeholder strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
 }
 
 .listing-card__meta,
@@ -327,6 +386,12 @@ main {
   color: #8d3020;
 }
 
+.listing-card__gallery-count,
+.catalog-results-bar span {
+  color: #5b6165;
+  font-size: 0.92rem;
+}
+
 .split-layout {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -341,6 +406,25 @@ main {
 .catalog-main {
   display: grid;
   gap: 18px;
+}
+
+.catalog-filter-panel {
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(23, 24, 26, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.catalog-results-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(23, 24, 26, 0.08);
 }
 
 .category-column {
@@ -550,5 +634,10 @@ main {
   .mini-stats,
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .catalog-results-bar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

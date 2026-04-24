@@ -1,4 +1,4 @@
-import type { Category, Health, Listing, Message, User } from "./types";
+import type { Category, Health, Listing, ListingFilters, Message, User } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
@@ -23,10 +23,31 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return (await response.json()) as T;
 }
 
+function withQuery(path: string, params: Record<string, string | number | undefined>) {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  }
+  const query = searchParams.toString();
+  return query ? `${path}?${query}` : path;
+}
+
 export const api = {
   health: () => request<Health>("/health"),
   categories: () => request<Category[]>("/categories"),
-  listings: () => request<Listing[]>("/listings"),
+  listings: (filters: ListingFilters = {}) =>
+    request<Listing[]>(
+      withQuery("/listings", {
+        query: filters.query,
+        category_id: filters.category_id,
+        min_price: filters.min_price,
+        max_price: filters.max_price,
+        sort_by: filters.sort_by,
+        sort_order: filters.sort_order,
+      }),
+    ),
   login: (email: string, password: string) =>
     request<{ access_token: string; token_type: string }>("/auth/login", {
       method: "POST",
@@ -55,7 +76,13 @@ export const api = {
     }),
   createListing: (
     token: string,
-    payload: { title: string; description: string; price: number; category_id: number },
+    payload: {
+      title: string;
+      description: string;
+      price: number;
+      category_id: number;
+      image_urls: string[];
+    },
   ) =>
     request<Listing>("/listings", {
       method: "POST",

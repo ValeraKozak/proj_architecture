@@ -12,6 +12,7 @@
 - `users`
 - `categories`
 - `listings`
+- `listing_images`
 - `messages`
 
 ## Нормалізація
@@ -23,6 +24,7 @@
 - `users (1) -> (N) listings`
 - `categories (1) -> (N) listings`
 - `listings (1) -> (N) messages`
+- `listings (1) -> (N) listing_images`
 - `users (1) -> (N) messages` як `sender`
 - `users (1) -> (N) messages` як `recipient`
 

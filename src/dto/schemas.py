@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import AnyHttpUrl, BaseModel, EmailStr, Field, field_validator
 
 from src.models.entities import ListingStatus, Role
 
@@ -62,6 +62,7 @@ class ListingCreateDTO(BaseModel):
     description: str = Field(min_length=20, max_length=5000)
     price: float = Field(gt=0)
     category_id: int
+    image_urls: list[AnyHttpUrl] = Field(default_factory=list, max_length=6)
 
     @field_validator("title")
     @classmethod
@@ -74,6 +75,7 @@ class ListingUpdateDTO(BaseModel):
     description: str | None = Field(default=None, min_length=20, max_length=5000)
     price: float | None = Field(default=None, gt=0)
     category_id: int | None = None
+    image_urls: list[AnyHttpUrl] | None = Field(default=None, max_length=6)
 
 
 class ListingReadDTO(BaseModel):
@@ -86,6 +88,7 @@ class ListingReadDTO(BaseModel):
     owner_id: int
     category_id: int
     created_at: datetime | None = None
+    image_urls: list[str] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
 

@@ -17,6 +17,7 @@
 - `POST /listings`
 - `PUT /listings/{listing_id}`
 - `GET /listings`
+- `GET /listings?query=&category_id=&min_price=&max_price=&sort_by=&sort_order=`
 - `GET /listings/me/owned`
 - `GET /listings/{listing_id}`
 - `DELETE /listings/{listing_id}`
@@ -45,3 +46,8 @@
 ## Аутентифікація
 - Bearer JWT токен передається в заголовку `Authorization`
 - ролі доступу: `user`, `moderator`, `admin`
+
+## Розширення оголошень
+- `ListingCreateDTO` та `ListingUpdateDTO` підтримують `image_urls`
+- публічний каталог підтримує серверний пошук і фільтри:
+  `query`, `category_id`, `min_price`, `max_price`, `sort_by`, `sort_order`

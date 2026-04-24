@@ -10,6 +10,8 @@
 `.env.example` уже налаштований для Docker Compose через
 `postgresql+psycopg://postgres:postgres@db:5432/bulletin_board`.
 Для локального запуску без Docker слід використовувати SQLite-URL.
+Frontend у контейнерному режимі збирається у production bundle і віддається через `nginx`.
+`nginx` також проксіює `/api/` запити до backend-сервісу.
 
 ## CI
 GitHub Actions workflow:

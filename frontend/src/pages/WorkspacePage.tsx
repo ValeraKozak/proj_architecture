@@ -17,6 +17,7 @@ interface WorkspacePageProps {
     description: string;
     price: number;
     category_id: number;
+    image_urls: string[];
   }) => Promise<void>;
   onCreateCategory: (payload: { name: string; description: string }) => Promise<void>;
 }

@@ -25,10 +25,12 @@ def test_create_listing_sets_pending_status(db_session, owner_and_category):
             description="Used phone in great condition with charger and long enough text.",
             price=900,
             category_id=category.id,
+            image_urls=["https://images.example.com/iphone-front.jpg"],
         ),
         owner,
     )
     assert listing.status == ListingStatus.PENDING
+    assert listing.image_urls == ["https://images.example.com/iphone-front.jpg"]
 
 
 @pytest.mark.parametrize("price", [1, 5, 10, 49.99, 100, 250, 999.99, 1500, 2500, 5000])
@@ -108,11 +110,16 @@ def test_update_listing_resets_status(db_session, owner_and_category, title, pri
     db_session.commit()
     updated = service.update(
         listing.id,
-        ListingUpdateDTO(title=title, price=price),
+        ListingUpdateDTO(
+            title=title,
+            price=price,
+            image_urls=["https://images.example.com/updated-listing.jpg"],
+        ),
         owner,
     )
     assert updated.status == ListingStatus.PENDING
     assert updated.rejection_reason is None
+    assert updated.image_urls == ["https://images.example.com/updated-listing.jpg"]
 
 
 def test_get_owned_listings_returns_owner_items(db_session, owner_and_category):
@@ -129,6 +136,42 @@ def test_get_owned_listings_returns_owner_items(db_session, owner_and_category):
     )
     listings = service.get_owned(owner)
     assert len(listings) == 1
+
+
+def test_get_public_listings_supports_search_and_filters(db_session, owner_and_category):
+    owner, category = owner_and_category
+    furniture = Category(name="Furniture", description="Home and office furniture")
+    db_session.add(furniture)
+    db_session.commit()
+    db_session.refresh(furniture)
+
+    service = ListingService(db_session)
+    matching = service.create(
+        ListingCreateDTO(
+            title="Gaming Chair Pro",
+            description="Comfortable ergonomic chair with headrest and adjustable armrests.",
+            price=220,
+            category_id=furniture.id,
+        ),
+        owner,
+    )
+    matching.status = ListingStatus.APPROVED
+    ignored = service.create(
+        ListingCreateDTO(
+            title="Desk Lamp",
+            description="Bright lamp with long enough text for the validation rules.",
+            price=45,
+            category_id=category.id,
+        ),
+        owner,
+    )
+    ignored.status = ListingStatus.APPROVED
+    db_session.commit()
+
+    listings = service.get_public(query="chair", min_price=100, sort_by="price", sort_order="asc")
+
+    assert [listing.id for listing in listings] == [matching.id]
+    assert ignored.id not in [listing.id for listing in listings]
 
 
 def test_get_listing_by_id_visible_for_owner(db_session, owner_and_category):

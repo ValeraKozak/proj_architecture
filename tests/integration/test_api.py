@@ -1,4 +1,4 @@
-from src.models.entities import Role
+from src.models.entities import Listing, ListingStatus, Role
 from tests.conftest import auth_header
 
 
@@ -38,10 +38,12 @@ def test_listing_moderation_and_message_flow(client, db_session, seeded_users, s
             "description": "Great notebook for work and study with charger and warranty included.",
             "price": 950,
             "category_id": seeded_category.id,
+            "image_urls": ["https://images.example.com/macbook-air-m2.jpg"],
         },
         headers=auth_header(seeded_users["owner"].email),
     )
     assert create_response.status_code == 201
+    assert create_response.json()["image_urls"] == ["https://images.example.com/macbook-air-m2.jpg"]
     listing_id = create_response.json()["id"]
 
     moderation_response = client.post(
@@ -133,6 +135,7 @@ def test_listing_detail_owned_list_and_archive_flow(
             "description": "Console in excellent condition with two controllers and warranty.",
             "price": 500,
             "category_id": seeded_category.id,
+            "image_urls": ["https://images.example.com/ps5.jpg"],
         },
         headers=auth_header(seeded_users["owner"].email),
     )
@@ -148,6 +151,7 @@ def test_listing_detail_owned_list_and_archive_flow(
         headers=auth_header(seeded_users["owner"].email),
     )
     assert detail_response.status_code == 200
+    assert detail_response.json()["image_urls"] == ["https://images.example.com/ps5.jpg"]
 
     delete_response = client.delete(
         f"/listings/{listing_id}",
@@ -225,3 +229,50 @@ def test_message_read_and_delete_flow(client, db_session, seeded_users, seeded_c
         headers=auth_header(seeded_users["buyer"].email),
     )
     assert delete_response.status_code == 200
+
+
+def test_public_listing_filters_and_sorting(client, db_session, seeded_users, seeded_category):
+    first_listing = client.post(
+        "/listings",
+        json={
+            "title": "Vintage Camera",
+            "description": "Analog camera with leather case and a fully working shutter mechanism.",
+            "price": 180,
+            "category_id": seeded_category.id,
+            "image_urls": ["https://images.example.com/vintage-camera.jpg"],
+        },
+        headers=auth_header(seeded_users["owner"].email),
+    )
+    second_listing = client.post(
+        "/listings",
+        json={
+            "title": "Modern Mirrorless Camera",
+            "description": "Mirrorless camera with kit lens, charger, battery grip and camera bag.",
+            "price": 860,
+            "category_id": seeded_category.id,
+            "image_urls": ["https://images.example.com/mirrorless-camera.jpg"],
+        },
+        headers=auth_header(seeded_users["owner"].email),
+    )
+
+    first = db_session.get(Listing, first_listing.json()["id"])
+    second = db_session.get(Listing, second_listing.json()["id"])
+    assert first is not None
+    assert second is not None
+    first.status = ListingStatus.APPROVED
+    second.status = ListingStatus.APPROVED
+    db_session.commit()
+
+    response = client.get(
+        "/listings",
+        params={
+            "query": "camera",
+            "min_price": 200,
+            "sort_by": "price",
+            "sort_order": "desc",
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload) == 1
+    assert payload[0]["title"] == "Modern Mirrorless Camera"

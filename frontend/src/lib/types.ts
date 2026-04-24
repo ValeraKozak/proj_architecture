@@ -17,6 +17,7 @@ export interface Listing {
   owner_id: number;
   category_id: number;
   created_at?: string | null;
+  image_urls: string[];
 }
 
 export interface User {
@@ -39,4 +40,13 @@ export interface Message {
 export interface Health {
   status: string;
   environment: string;
+}
+
+export interface ListingFilters {
+  query?: string;
+  category_id?: number;
+  min_price?: number;
+  max_price?: number;
+  sort_by?: "created_at" | "price";
+  sort_order?: "asc" | "desc";
 }

@@ -1,10 +1,10 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.dto.schemas import DeleteResponseDTO, ListingCreateDTO, ListingUpdateDTO
-from src.models.entities import Category, Listing, ListingStatus, Role, User
+from src.models.entities import Category, Listing, ListingImage, ListingStatus, Role, User
 from src.repositories.listing_repository import ListingRepository
 
 logger = logging.getLogger(__name__)
@@ -32,8 +32,10 @@ class ListingService:
             owner_id=owner.id,
             status=ListingStatus.PENDING,
         )
+        self._set_images(listing, payload.image_urls)
         self.listings.add(listing)
         self.db.commit()
+        self.db.refresh(listing)
         logger.info("Listing created listing_id=%s owner_id=%s", listing.id, owner.id)
         return listing
 
@@ -41,8 +43,10 @@ class ListingService:
         listing = self._get_owned_listing(listing_id, owner.id)
         if payload.category_id is not None and self.db.get(Category, payload.category_id) is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
-        for field, value in payload.model_dump(exclude_none=True).items():
+        for field, value in payload.model_dump(exclude_none=True, exclude={"image_urls"}).items():
             setattr(listing, field, value.strip() if isinstance(value, str) else value)
+        if payload.image_urls is not None:
+            self._set_images(listing, payload.image_urls)
         listing.status = ListingStatus.PENDING
         listing.rejection_reason = None
         self.db.commit()
@@ -50,11 +54,32 @@ class ListingService:
         logger.info("Listing updated listing_id=%s owner_id=%s", listing.id, owner.id)
         return listing
 
-    def get_public(self) -> list[Listing]:
-        return self.listings.list_visible()
+    def get_public(
+        self,
+        *,
+        query: str | None = None,
+        category_id: int | None = None,
+        min_price: float | None = None,
+        max_price: float | None = None,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
+    ) -> list[Listing]:
+        if min_price is not None and max_price is not None and min_price > max_price:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="min_price cannot be greater than max_price",
+            )
+        return self.listings.list_visible(
+            query=query,
+            category_id=category_id,
+            min_price=min_price,
+            max_price=max_price,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
 
     def get_by_id(self, listing_id: int, current_user: User | None = None) -> Listing:
-        listing = self.listings.get(listing_id)
+        listing = self._query_with_images().filter(Listing.id == listing_id).one_or_none()
         if listing is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
         if listing.status == ListingStatus.APPROVED:
@@ -79,9 +104,19 @@ class ListingService:
         return DeleteResponseDTO(message="Listing deleted")
 
     def _get_owned_listing(self, listing_id: int, owner_id: int) -> Listing:
-        listing = self.listings.get(listing_id)
+        listing = self._query_with_images().filter(Listing.id == listing_id).one_or_none()
         if listing is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
         if listing.owner_id != owner_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your listing")
         return listing
+
+    def _query_with_images(self):
+        return self.db.query(Listing).options(selectinload(Listing.images))
+
+    @staticmethod
+    def _set_images(listing: Listing, image_urls) -> None:
+        listing.images = [
+            ListingImage(url=str(image_url), position=index)
+            for index, image_url in enumerate(image_urls)
+        ]

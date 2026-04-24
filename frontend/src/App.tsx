@@ -82,6 +82,7 @@ export function App() {
     description: string;
     price: number;
     category_id: number;
+    image_urls: string[];
   }) {
     if (!token) {
       throw new Error("Login required");
@@ -107,7 +108,7 @@ export function App() {
       <main>
         <Routes>
           <Route path="/" element={<HomePage health={health} categories={categories} listings={listings} />} />
-          <Route path="/catalog" element={<CatalogPage categories={categories} listings={listings} />} />
+          <Route path="/catalog" element={<CatalogPage categories={categories} />} />
           <Route
             path="/workspace"
             element={

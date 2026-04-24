@@ -79,6 +79,15 @@ class Listing(Base):
         back_populates="listing",
         cascade="all, delete-orphan",
     )
+    images: Mapped[list["ListingImage"]] = relationship(
+        back_populates="listing",
+        cascade="all, delete-orphan",
+        order_by="ListingImage.position",
+    )
+
+    @property
+    def image_urls(self) -> list[str]:
+        return [image.url for image in sorted(self.images, key=lambda image: image.position)]
 
 
 class Message(Base):
@@ -96,3 +105,14 @@ class Message(Base):
     recipient: Mapped[User] = relationship(
         back_populates="received_messages", foreign_keys=[recipient_id]
     )
+
+
+class ListingImage(Base):
+    __tablename__ = "listing_images"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id", ondelete="CASCADE"))
+    url: Mapped[str] = mapped_column(String(2048))
+    position: Mapped[int] = mapped_column(default=0)
+
+    listing: Mapped[Listing] = relationship(back_populates="images")

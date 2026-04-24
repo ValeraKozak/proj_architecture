@@ -14,6 +14,7 @@ interface WorkspacePanelsProps {
     description: string;
     price: number;
     category_id: number;
+    image_urls: string[];
   }) => Promise<void>;
   onCreateCategory: (payload: { name: string; description: string }) => Promise<void>;
 }
@@ -32,6 +33,7 @@ export function WorkspacePanels({
     description: "",
     price: "",
     category_id: "",
+    image_urls: "",
   });
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
 
@@ -42,8 +44,12 @@ export function WorkspacePanels({
       description: listingForm.description,
       price: Number(listingForm.price),
       category_id: Number(listingForm.category_id),
+      image_urls: listingForm.image_urls
+        .split("\n")
+        .map((value) => value.trim())
+        .filter(Boolean),
     });
-    setListingForm({ title: "", description: "", price: "", category_id: "" });
+    setListingForm({ title: "", description: "", price: "", category_id: "", image_urls: "" });
   }
 
   async function submitCategory(event: FormEvent) {
@@ -102,6 +108,16 @@ export function WorkspacePanels({
               </select>
             </label>
           </div>
+          <label>
+            Image URLs
+            <textarea
+              value={listingForm.image_urls}
+              placeholder="https://images.example.com/cover.jpg&#10;https://images.example.com/detail.jpg"
+              onChange={(event) =>
+                setListingForm((current) => ({ ...current, image_urls: event.target.value }))
+              }
+            />
+          </label>
           <button className="cta-button" type="submit">
             Publish listing
           </button>

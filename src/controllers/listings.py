@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+from typing import Literal
+
+from fastapi import APIRouter, Depends, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -32,8 +34,23 @@ def update_listing(
 
 
 @router.get("", response_model=list[ListingReadDTO])
-def public_listings(db: Session = Depends(get_db)) -> list[ListingReadDTO]:
-    return ListingService(db).get_public()
+def public_listings(
+    db: Session = Depends(get_db),
+    query: str | None = Query(default=None, min_length=1, max_length=100),
+    category_id: int | None = Query(default=None, gt=0),
+    min_price: float | None = Query(default=None, gt=0),
+    max_price: float | None = Query(default=None, gt=0),
+    sort_by: Literal["created_at", "price"] = Query(default="created_at"),
+    sort_order: Literal["asc", "desc"] = Query(default="desc"),
+) -> list[ListingReadDTO]:
+    return ListingService(db).get_public(
+        query=query,
+        category_id=category_id,
+        min_price=min_price,
+        max_price=max_price,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
 
 
 @router.get("/me/owned", response_model=list[ListingReadDTO])
