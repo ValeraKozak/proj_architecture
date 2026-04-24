@@ -56,6 +56,16 @@ APP_DATABASE_URL=sqlite:///./bulletin_board.db
 
 Для Docker Compose залишай PostgreSQL-URL з драйвером `postgresql+psycopg://...`.
 
+## Одинарний запуск
+Локально весь dev-стек можна підняти однією командою:
+```powershell
+.\run.ps1
+```
+
+Скрипт відкриває два окремі PowerShell-вікна:
+- backend на `http://127.0.0.1:8000`
+- frontend на `http://127.0.0.1:5173`
+
 ## Frontend запуск
 ```bash
 cd frontend
@@ -77,6 +87,7 @@ docker compose up --build
 ```
 
 Під час контейнерного запуску застосунок автоматично виконує SQL-міграції з `db/migrations/`.
+`docker compose up --build` тепер піднімає `db + api + frontend`.
 
 ## Документація
 - [Вимоги](docs/spec/requirements.md)
