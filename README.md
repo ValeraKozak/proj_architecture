@@ -49,6 +49,15 @@ copy .env.example .env
 uvicorn src.main:app --reload
 ```
 
+## Frontend запуск
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend dev server очікує backend на `http://127.0.0.1:8000` і за замовчуванням запускається на `http://127.0.0.1:5173`.
+
 ## Тести
 ```bash
 pytest --cov=src --cov-report=term-missing

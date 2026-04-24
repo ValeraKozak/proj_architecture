@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.controllers import auth, categories, listings, messages, moderation, users
 from src.core.config import get_settings
@@ -34,6 +35,18 @@ def create_app() -> FastAPI:
         ),
         contact={"name": "Course Project Maintainer", "email": "maintainer@example.com"},
         lifespan=lifespan,
+    )
+    allowed_origins = [
+        origin.strip()
+        for origin in settings.frontend_origins.split(",")
+        if origin.strip()
+    ]
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     @application.middleware("http")
