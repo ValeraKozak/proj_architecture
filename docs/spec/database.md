@@ -37,6 +37,9 @@
 
 ## Міграції
 Початкова SQL-міграція знаходиться в `db/migrations/001_initial_schema.sql`.
+Для PostgreSQL застосунок під час старту виконує SQL-міграції з каталогу `db/migrations/`
+та фіксує їх у таблиці `schema_migrations`.
+Для SQLite в локальному режимі й unit/integration тестах використовується `Base.metadata.create_all`.
 
 ## Локальна та контейнерна БД
 - Для unit/integration тестів використовується SQLite in-memory.

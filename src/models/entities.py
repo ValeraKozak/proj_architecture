@@ -28,7 +28,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     full_name: Mapped[str] = mapped_column(String(255))
     password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[Role] = mapped_column(Enum(Role), default=Role.USER)
+    role: Mapped[Role] = mapped_column(Enum(Role, name="role"), default=Role.USER)
     is_blocked: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -61,7 +61,10 @@ class Listing(Base):
     title: Mapped[str] = mapped_column(String(150), index=True)
     description: Mapped[str] = mapped_column(Text())
     price: Mapped[float] = mapped_column(Float())
-    status: Mapped[ListingStatus] = mapped_column(Enum(ListingStatus), default=ListingStatus.DRAFT)
+    status: Mapped[ListingStatus] = mapped_column(
+        Enum(ListingStatus, name="listingstatus"),
+        default=ListingStatus.DRAFT,
+    )
     rejection_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))

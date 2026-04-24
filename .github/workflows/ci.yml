@@ -28,3 +28,33 @@ jobs:
             coverage.xml
             pytest-report.xml
             ruff-report.txt
+
+  postgres-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: bulletin_board
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d bulletin_board"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/bulletin_board
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Run PostgreSQL migration smoke tests
+        run: pytest tests/integration/test_postgres_bootstrap.py -q

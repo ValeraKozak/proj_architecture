@@ -7,13 +7,18 @@
 4. Перевірити `http://localhost:8000/health`
 5. Відкрити `http://localhost:8000/docs`
 
+`.env.example` уже налаштований для Docker Compose через
+`postgresql+psycopg://postgres:postgres@db:5432/bulletin_board`.
+Для локального запуску без Docker слід використовувати SQLite-URL.
+
 ## CI
 GitHub Actions workflow:
 - інсталює залежності;
 - запускає `ruff check .`;
 - запускає `pytest`;
 - генерує `coverage.xml` і `pytest-report.xml`;
-- зберігає звіти як артефакти.
+- зберігає звіти як артефакти;
+- окремо піднімає PostgreSQL service і перевіряє застосування SQL-міграцій.
 
 ## CD
 У репозиторії реалізовано окремий CD workflow:

@@ -49,6 +49,13 @@ copy .env.example .env
 uvicorn src.main:app --reload
 ```
 
+Для локального запуску без Docker заміни `APP_DATABASE_URL` у `.env` на:
+```env
+APP_DATABASE_URL=sqlite:///./bulletin_board.db
+```
+
+Для Docker Compose залишай PostgreSQL-URL з драйвером `postgresql+psycopg://...`.
+
 ## Frontend запуск
 ```bash
 cd frontend
@@ -68,6 +75,8 @@ pytest --cov=src --cov-report=term-missing
 copy .env.example .env
 docker compose up --build
 ```
+
+Під час контейнерного запуску застосунок автоматично виконує SQL-міграції з `db/migrations/`.
 
 ## Документація
 - [Вимоги](docs/spec/requirements.md)
