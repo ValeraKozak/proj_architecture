@@ -51,7 +51,73 @@ def _ensure_migration_table(db: Session) -> None:
 
 
 def _split_sql_statements(script: str) -> list[str]:
-    return [statement.strip() for statement in script.split(";\n") if statement.strip()]
+    statements: list[str] = []
+    buffer: list[str] = []
+    index = 0
+    in_single_quote = False
+    in_double_quote = False
+    dollar_quote_tag: str | None = None
+
+    while index < len(script):
+        char = script[index]
+        next_char = script[index + 1] if index + 1 < len(script) else ""
+
+        if dollar_quote_tag is not None:
+            if script.startswith(dollar_quote_tag, index):
+                buffer.append(dollar_quote_tag)
+                index += len(dollar_quote_tag)
+                dollar_quote_tag = None
+                continue
+            buffer.append(char)
+            index += 1
+            continue
+
+        if not in_single_quote and not in_double_quote and char == "$":
+            tag_end = script.find("$", index + 1)
+            if tag_end != -1:
+                possible_tag = script[index : tag_end + 1]
+                if all(part.isidentifier() or part == "" for part in possible_tag[1:-1].split("_")):
+                    dollar_quote_tag = possible_tag
+                    buffer.append(possible_tag)
+                    index = tag_end + 1
+                    continue
+
+        if char == "'" and not in_double_quote:
+            buffer.append(char)
+            if in_single_quote and next_char == "'":
+                buffer.append(next_char)
+                index += 2
+                continue
+            in_single_quote = not in_single_quote
+            index += 1
+            continue
+
+        if char == '"' and not in_single_quote:
+            buffer.append(char)
+            if in_double_quote and next_char == '"':
+                buffer.append(next_char)
+                index += 2
+                continue
+            in_double_quote = not in_double_quote
+            index += 1
+            continue
+
+        if char == ";" and not in_single_quote and not in_double_quote:
+            statement = "".join(buffer).strip()
+            if statement:
+                statements.append(statement)
+            buffer = []
+            index += 1
+            continue
+
+        buffer.append(char)
+        index += 1
+
+    trailing_statement = "".join(buffer).strip()
+    if trailing_statement:
+        statements.append(trailing_statement)
+
+    return statements
 
 
 def _apply_sql_migrations(db: Session) -> None:
