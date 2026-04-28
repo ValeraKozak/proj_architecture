@@ -2,6 +2,18 @@ import type { Category, Health, Listing, ListingFilters, Message, User } from ".
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
+export class APIError extends Error {
+  status: number;
+  detail: string;
+
+  constructor(status: number, detail: string) {
+    super(detail || `Request failed: ${status}`);
+    this.name = "APIError";
+    this.status = status;
+    this.detail = detail || `Request failed: ${status}`;
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
@@ -12,8 +24,17 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || `Request failed: ${response.status}`);
+    const contentType = response.headers.get("content-type") ?? "";
+    let detail = "";
+
+    if (contentType.includes("application/json")) {
+      const payload = (await response.json()) as { detail?: string };
+      detail = payload.detail ?? "";
+    } else {
+      detail = await response.text();
+    }
+
+    throw new APIError(response.status, detail || `Request failed: ${response.status}`);
   }
 
   if (response.status === 204) {

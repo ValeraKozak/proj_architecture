@@ -1,16 +1,32 @@
 import { useEffect, useMemo, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { Header } from "./components/Header";
-import { api } from "./lib/api";
+import { APIError, api } from "./lib/api";
 import type { Category, Health, Listing, Message, User } from "./lib/types";
 import { CatalogPage } from "./pages/CatalogPage";
+import { ErrorPage } from "./pages/ErrorPage";
 import { HomePage } from "./pages/HomePage";
 import { WorkspacePage } from "./pages/WorkspacePage";
 
 const TOKEN_KEY = "bulletin-board-token";
 
+function resolvePageError(error: unknown): number | null {
+  if (!(error instanceof APIError)) {
+    return null;
+  }
+  if (error.status >= 500) {
+    return 500;
+  }
+  if (error.status === 400) {
+    return 400;
+  }
+  return null;
+}
+
 export function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [health, setHealth] = useState<Health | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -47,8 +63,14 @@ export function App() {
   }
 
   useEffect(() => {
-    refreshPublicData().catch(console.error);
-  }, []);
+    refreshPublicData().catch((error) => {
+      console.error(error);
+      const code = resolvePageError(error);
+      if (code) {
+        navigate(`/errors/${code}`, { replace: true });
+      }
+    });
+  }, [navigate]);
 
   useEffect(() => {
     if (!token) {
@@ -61,10 +83,19 @@ export function App() {
 
     refreshPrivateData(token).catch((error) => {
       console.error(error);
-      window.localStorage.removeItem(TOKEN_KEY);
-      setToken("");
+
+      if (error instanceof APIError && (error.status === 401 || error.status === 403)) {
+        window.localStorage.removeItem(TOKEN_KEY);
+        setToken("");
+        return;
+      }
+
+      const code = resolvePageError(error);
+      if (code) {
+        navigate(`/errors/${code}`, { replace: true });
+      }
     });
-  }, [token]);
+  }, [navigate, token]);
 
   async function handleLogin(email: string, password: string) {
     const result = await api.login(email, password);
@@ -101,10 +132,11 @@ export function App() {
   }
 
   const isAuthenticated = useMemo(() => Boolean(token && user), [token, user]);
+  const isErrorRoute = location.pathname.startsWith("/errors/");
 
   return (
-    <div className="app-shell">
-      <Header isAuthenticated={isAuthenticated} userName={user?.full_name} />
+    <div className={`app-shell${isErrorRoute ? " app-shell--error" : ""}`}>
+      {isErrorRoute ? null : <Header isAuthenticated={isAuthenticated} userName={user?.full_name} />}
       <main>
         <Routes>
           <Route path="/" element={<HomePage health={health} categories={categories} listings={listings} />} />
@@ -125,6 +157,8 @@ export function App() {
               />
             }
           />
+          <Route path="/errors/:code" element={<ErrorPage />} />
+          <Route path="*" element={<ErrorPage code={404} />} />
         </Routes>
       </main>
     </div>
