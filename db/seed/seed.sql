@@ -544,6 +544,516 @@ WHERE seller.email = 'seller@example.com'
       SELECT 1 FROM listings existing WHERE existing.title = 'iPhone 14 Pro 256GB'
   );
 
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Nintendo Switch OLED',
+    'OLED model with dock, charger and carrying case, in clean condition and fully tested.',
+    310.00,
+    'approved',
+    NULL,
+    seller2.id,
+    electronics.id
+FROM users seller2
+CROSS JOIN categories electronics
+WHERE seller2.email = 'seller2@example.com'
+  AND electronics.name = 'Electronics'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Nintendo Switch OLED'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Bosch Coffee Grinder',
+    'Compact burr grinder with adjustable settings for espresso and pour-over brewing.',
+    48.00,
+    'approved',
+    NULL,
+    seller.id,
+    living.id
+FROM users seller
+CROSS JOIN categories living
+WHERE seller.email = 'seller@example.com'
+  AND living.name = 'Home & Living'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Bosch Coffee Grinder'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Acoustic Guitar Yamaha F310',
+    'Beginner-friendly acoustic guitar with soft case and fresh strings.',
+    135.00,
+    'approved',
+    NULL,
+    seller2.id,
+    electronics.id
+FROM users seller2
+CROSS JOIN categories electronics
+WHERE seller2.email = 'seller2@example.com'
+  AND electronics.name = 'Electronics'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Acoustic Guitar Yamaha F310'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Office Chair ErgoMesh',
+    'Breathable ergonomic chair with lumbar support and adjustable armrests.',
+    175.00,
+    'approved',
+    NULL,
+    designer.id,
+    living.id
+FROM users designer
+CROSS JOIN categories living
+WHERE designer.email = 'designer@example.com'
+  AND living.name = 'Home & Living'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Office Chair ErgoMesh'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Weekend Babysitting Help',
+    'Trusted weekend babysitting for evenings and short daytime schedules.',
+    22.00,
+    'pending',
+    NULL,
+    family.id,
+    services.id
+FROM users family
+CROSS JOIN categories services
+WHERE family.email = 'parentseller@example.com'
+  AND services.name = 'Services'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Weekend Babysitting Help'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Road Bike Helmet Giro',
+    'Lightweight helmet with rear adjustment dial and strong ventilation.',
+    52.00,
+    'approved',
+    NULL,
+    auto.id,
+    vehicles.id
+FROM users auto
+CROSS JOIN categories vehicles
+WHERE auto.email = 'auto@example.com'
+  AND vehicles.name = 'Vehicles'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Road Bike Helmet Giro'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Indoor Plant Monstera Large',
+    'Healthy mature monstera in ceramic pot, great for bright living rooms or studios.',
+    38.00,
+    'approved',
+    NULL,
+    outdoor.id,
+    garden.id
+FROM users outdoor
+CROSS JOIN categories garden
+WHERE outdoor.email = 'gardener@example.com'
+  AND garden.name = 'Garden & Outdoor'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Indoor Plant Monstera Large'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'French Lessons Online',
+    'Conversation-focused French lessons for beginners with weekly homework and feedback.',
+    24.00,
+    'approved',
+    NULL,
+    tutor.id,
+    services.id
+FROM users tutor
+CROSS JOIN categories services
+WHERE tutor.email = 'tutor@example.com'
+  AND services.name = 'Services'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'French Lessons Online'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Winter Boots Timber Style',
+    'Warm waterproof winter boots with solid grip and minimal wear.',
+    89.00,
+    'approved',
+    NULL,
+    designer.id,
+    fashion.id
+FROM users designer
+CROSS JOIN categories fashion
+WHERE designer.email = 'designer@example.com'
+  AND fashion.name = 'Fashion'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Winter Boots Timber Style'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Hamster Cage Full Set',
+    'Starter cage with wheel, water bottle, food bowl and hideout house.',
+    44.00,
+    'approved',
+    NULL,
+    pet.id,
+    pets.id
+FROM users pet
+CROSS JOIN categories pets
+WHERE pet.email = 'petseller@example.com'
+  AND pets.name = 'Pets'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Hamster Cage Full Set'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Samsung Galaxy Tab S8',
+    'Tablet with pen support, bright display and charger included for study or media.',
+    390.00,
+    'approved',
+    NULL,
+    seller.id,
+    electronics.id
+FROM users seller
+CROSS JOIN categories electronics
+WHERE seller.email = 'seller@example.com'
+  AND electronics.name = 'Electronics'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Samsung Galaxy Tab S8'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Sony WH-1000XM5',
+    'Flagship wireless headphones with strong noise cancelling and travel case.',
+    265.00,
+    'approved',
+    NULL,
+    seller2.id,
+    electronics.id
+FROM users seller2
+CROSS JOIN categories electronics
+WHERE seller2.email = 'seller2@example.com'
+  AND electronics.name = 'Electronics'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Sony WH-1000XM5'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'GoPro Hero 11 Black',
+    'Action camera with spare battery and compact mount kit for travel and sport.',
+    295.00,
+    'approved',
+    NULL,
+    seller2.id,
+    electronics.id
+FROM users seller2
+CROSS JOIN categories electronics
+WHERE seller2.email = 'seller2@example.com'
+  AND electronics.name = 'Electronics'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'GoPro Hero 11 Black'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Robot Vacuum Roborock Q8',
+    'Smart vacuum with mapping, mop module and fresh consumables.',
+    240.00,
+    'approved',
+    NULL,
+    seller.id,
+    living.id
+FROM users seller
+CROSS JOIN categories living
+WHERE seller.email = 'seller@example.com'
+  AND living.name = 'Home & Living'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Robot Vacuum Roborock Q8'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Bookshelf Oak 5-Tier',
+    'Solid bookshelf with warm oak finish for books, plants and office storage.',
+    110.00,
+    'approved',
+    NULL,
+    designer.id,
+    living.id
+FROM users designer
+CROSS JOIN categories living
+WHERE designer.email = 'designer@example.com'
+  AND living.name = 'Home & Living'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Bookshelf Oak 5-Tier'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Air Fryer Philips XL',
+    'Large-capacity air fryer with digital programs and removable basket.',
+    95.00,
+    'approved',
+    NULL,
+    seller.id,
+    living.id
+FROM users seller
+CROSS JOIN categories living
+WHERE seller.email = 'seller@example.com'
+  AND living.name = 'Home & Living'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Air Fryer Philips XL'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Mountain Hiking Backpack 40L',
+    'Lightweight backpack with rain cover and ergonomic support for weekend hikes.',
+    68.00,
+    'approved',
+    NULL,
+    auto.id,
+    vehicles.id
+FROM users auto
+CROSS JOIN categories vehicles
+WHERE auto.email = 'auto@example.com'
+  AND vehicles.name = 'Vehicles'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Mountain Hiking Backpack 40L'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Baby Crib with Mattress',
+    'Wooden crib in good condition with matching mattress and fitted sheets.',
+    170.00,
+    'approved',
+    NULL,
+    family.id,
+    kids.id
+FROM users family
+CROSS JOIN categories kids
+WHERE family.email = 'parentseller@example.com'
+  AND kids.name = 'Kids & Family'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Baby Crib with Mattress'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Kids Balance Bike',
+    'Starter bike for toddlers with adjustable seat and puncture-proof wheels.',
+    58.00,
+    'approved',
+    NULL,
+    family.id,
+    kids.id
+FROM users family
+CROSS JOIN categories kids
+WHERE family.email = 'parentseller@example.com'
+  AND kids.name = 'Kids & Family'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Kids Balance Bike'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Online IELTS Speaking Practice',
+    'Focused speaking practice with feedback and mock interview simulation.',
+    26.00,
+    'approved',
+    NULL,
+    tutor.id,
+    services.id
+FROM users tutor
+CROSS JOIN categories services
+WHERE tutor.email = 'tutor@example.com'
+  AND services.name = 'Services'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Online IELTS Speaking Practice'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Resume Review and Career Advice',
+    'Practical CV feedback and interview preparation for junior specialists.',
+    35.00,
+    'approved',
+    NULL,
+    employer.id,
+    services.id
+FROM users employer
+CROSS JOIN categories services
+WHERE employer.email = 'employer@example.com'
+  AND services.name = 'Services'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Resume Review and Career Advice'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Mini Photo Studio Lighting Kit',
+    'Softboxes, stands and daylight bulbs for product photography or portraits.',
+    125.00,
+    'approved',
+    NULL,
+    designer.id,
+    electronics.id
+FROM users designer
+CROSS JOIN categories electronics
+WHERE designer.email = 'designer@example.com'
+  AND electronics.name = 'Electronics'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Mini Photo Studio Lighting Kit'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Studio Apartment With Balcony',
+    'Freshly painted studio with balcony, washing machine and quick tram access.',
+    430.00,
+    'approved',
+    NULL,
+    realtor.id,
+    realestate.id
+FROM users realtor
+CROSS JOIN categories realestate
+WHERE realtor.email = 'realtor@example.com'
+  AND realestate.name = 'Real Estate'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Studio Apartment With Balcony'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Small Office Near Center',
+    'Quiet office room for a small team with internet and separate entrance.',
+    620.00,
+    'pending',
+    NULL,
+    realtor.id,
+    realestate.id
+FROM users realtor
+CROSS JOIN categories realestate
+WHERE realtor.email = 'realtor@example.com'
+  AND realestate.name = 'Real Estate'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Small Office Near Center'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Leather Chelsea Boots',
+    'Classic black boots with comfortable sole and only a few wears.',
+    92.00,
+    'approved',
+    NULL,
+    designer.id,
+    fashion.id
+FROM users designer
+CROSS JOIN categories fashion
+WHERE designer.email = 'designer@example.com'
+  AND fashion.name = 'Fashion'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Leather Chelsea Boots'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Cashmere Scarf Beige',
+    'Soft neutral scarf in excellent shape for autumn and winter outfits.',
+    39.00,
+    'approved',
+    NULL,
+    designer.id,
+    fashion.id
+FROM users designer
+CROSS JOIN categories fashion
+WHERE designer.email = 'designer@example.com'
+  AND fashion.name = 'Fashion'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Cashmere Scarf Beige'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Dog Walking Morning Slots',
+    'Morning dog walking service for busy owners in the nearby neighborhoods.',
+    14.00,
+    'approved',
+    NULL,
+    pet.id,
+    services.id
+FROM users pet
+CROSS JOIN categories services
+WHERE pet.email = 'petseller@example.com'
+  AND services.name = 'Services'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Dog Walking Morning Slots'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Rabbit Hutch Outdoor',
+    'Wooden two-level hutch with tray and weatherproof roof for rabbits or guinea pigs.',
+    115.00,
+    'approved',
+    NULL,
+    pet.id,
+    pets.id
+FROM users pet
+CROSS JOIN categories pets
+WHERE pet.email = 'petseller@example.com'
+  AND pets.name = 'Pets'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Rabbit Hutch Outdoor'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Portable Gas Heater Patio',
+    'Compact patio heater for cool evenings with stable base and cover.',
+    145.00,
+    'approved',
+    NULL,
+    outdoor.id,
+    garden.id
+FROM users outdoor
+CROSS JOIN categories garden
+WHERE outdoor.email = 'gardener@example.com'
+  AND garden.name = 'Garden & Outdoor'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Portable Gas Heater Patio'
+  );
+
+INSERT INTO listings (title, description, price, status, rejection_reason, owner_id, category_id)
+SELECT
+    'Folding Picnic Table Set',
+    'Easy-to-store folding table set for balcony lunches or camping trips.',
+    78.00,
+    'approved',
+    NULL,
+    outdoor.id,
+    garden.id
+FROM users outdoor
+CROSS JOIN categories garden
+WHERE outdoor.email = 'gardener@example.com'
+  AND garden.name = 'Garden & Outdoor'
+  AND NOT EXISTS (
+      SELECT 1 FROM listings existing WHERE existing.title = 'Folding Picnic Table Set'
+  );
+
 DELETE FROM listing_images
 WHERE listing_id IN (
     SELECT id
