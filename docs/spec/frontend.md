@@ -80,3 +80,4 @@ docker compose up --build
 - dev frontend очікує API на `http://127.0.0.1:8000`;
 - Docker frontend працює як production build через `nginx`;
 - у production-контейнері API викликається через `/api/*` reverse proxy.
+- Docker PostgreSQL публікується на `localhost:5433`, щоб не конфліктувати з локальним PostgreSQL.

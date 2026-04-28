@@ -7,6 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.db.database import Base
 
 
+def enum_values(enum_cls: type[enum.StrEnum]) -> list[str]:
+    return [member.value for member in enum_cls]
+
+
 class Role(enum.StrEnum):
     USER = "user"
     MODERATOR = "moderator"
@@ -28,7 +32,10 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     full_name: Mapped[str] = mapped_column(String(255))
     password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[Role] = mapped_column(Enum(Role, name="role"), default=Role.USER)
+    role: Mapped[Role] = mapped_column(
+        Enum(Role, name="role", values_callable=enum_values),
+        default=Role.USER,
+    )
     is_blocked: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -62,7 +69,7 @@ class Listing(Base):
     description: Mapped[str] = mapped_column(Text())
     price: Mapped[float] = mapped_column(Float())
     status: Mapped[ListingStatus] = mapped_column(
-        Enum(ListingStatus, name="listingstatus"),
+        Enum(ListingStatus, name="listingstatus", values_callable=enum_values),
         default=ListingStatus.DRAFT,
     )
     rejection_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)

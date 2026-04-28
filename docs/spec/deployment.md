@@ -12,6 +12,8 @@
 Для локального запуску без Docker слід використовувати SQLite-URL.
 Frontend у контейнерному режимі збирається у production bundle і віддається через `nginx`.
 `nginx` також проксіює `/api/` запити до backend-сервісу.
+PostgreSQL контейнер публікується на хості як `localhost:5433`, щоб не конфліктувати
+з локально встановленим PostgreSQL.
 
 ## CI
 GitHub Actions workflow:
