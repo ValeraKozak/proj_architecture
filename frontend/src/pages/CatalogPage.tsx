@@ -70,15 +70,15 @@ export function CatalogPage({ categories }: CatalogPageProps) {
       <section className="content-block split-layout">
         <div className="catalog-sidebar">
           <SectionTitle
-            eyebrow="Inventory map"
-            title="Search and filter board"
-            body="The catalog now behaves like a real storefront: live query matching, category filtering, price ranges and sorting all run against the API."
+            eyebrow="Пошук без тертя"
+            title="Фільтруйте як покупець, а не як тестувальник API"
+            body="Введіть запит, оберіть категорію й одразу отримайте зрозумілу вітрину. Логіка працює через backend, але для користувача відчувається легкою."
           />
           <form className="stack-form catalog-filter-panel">
             <label>
-              Search
+              Що ви шукаєте
               <input
-                placeholder="camera, chair, electronics..."
+                placeholder="ноутбук, велосипед, послуги..."
                 value={filters.query}
                 onChange={(event) =>
                   setFilters((current) => ({ ...current, query: event.target.value }))
@@ -86,14 +86,14 @@ export function CatalogPage({ categories }: CatalogPageProps) {
               />
             </label>
             <label>
-              Category
+              Категорія
               <select
                 value={filters.category_id}
                 onChange={(event) =>
                   setFilters((current) => ({ ...current, category_id: event.target.value }))
                 }
               >
-                <option value="">All categories</option>
+                <option value="">Усі категорії</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -103,7 +103,7 @@ export function CatalogPage({ categories }: CatalogPageProps) {
             </label>
             <div className="form-row">
               <label>
-                Min price
+                Ціна від
                 <input
                   type="number"
                   min="0"
@@ -114,7 +114,7 @@ export function CatalogPage({ categories }: CatalogPageProps) {
                 />
               </label>
               <label>
-                Max price
+                Ціна до
                 <input
                   type="number"
                   min="0"
@@ -127,7 +127,7 @@ export function CatalogPage({ categories }: CatalogPageProps) {
             </div>
             <div className="form-row">
               <label>
-                Sort by
+                Сортувати за
                 <select
                   value={filters.sort_by}
                   onChange={(event) =>
@@ -137,12 +137,12 @@ export function CatalogPage({ categories }: CatalogPageProps) {
                     }))
                   }
                 >
-                  <option value="created_at">Newest first</option>
-                  <option value="price">Price</option>
+                  <option value="created_at">Новизною</option>
+                  <option value="price">Ціною</option>
                 </select>
               </label>
               <label>
-                Order
+                Порядок
                 <select
                   value={filters.sort_order}
                   onChange={(event) =>
@@ -152,8 +152,8 @@ export function CatalogPage({ categories }: CatalogPageProps) {
                     }))
                   }
                 >
-                  <option value="desc">Descending</option>
-                  <option value="asc">Ascending</option>
+                  <option value="desc">Спадання</option>
+                  <option value="asc">Зростання</option>
                 </select>
               </label>
             </div>
@@ -171,7 +171,7 @@ export function CatalogPage({ categories }: CatalogPageProps) {
                 })
               }
             >
-              Reset filters
+              Скинути фільтри
             </button>
           </form>
           <div className="category-column">
@@ -184,22 +184,22 @@ export function CatalogPage({ categories }: CatalogPageProps) {
               ))
             ) : (
               <div className="empty-card">
-                <strong>No categories yet</strong>
-                <p>Create one from the workspace or admin API.</p>
+                <strong>Категорій поки немає</strong>
+                <p>Додайте їх із кабінету або через адміністративний API.</p>
               </div>
             )}
           </div>
         </div>
         <div className="catalog-main">
           <SectionTitle
-            eyebrow="Listings"
-            title="Filtered marketplace board"
-            body="Approved listings now render through a proper search experience, with large visual cards and server-side filtering instead of a static dump."
+            eyebrow="Вітрина"
+            title="Підібрані результати без перевантаження інтерфейсу"
+            body="Оголошення подаються великими картками, щоб користувачу було легко оцінити релевантність, фото і ціну ще до переходу в деталі."
           />
           {error ? <p className="form-error">{error}</p> : null}
           <div className="catalog-results-bar">
-            <strong>{isLoading ? "Loading..." : `${listings.length} matches`}</strong>
-            <span>Search, category, price range and sorting are all backed by the API.</span>
+            <strong>{isLoading ? "Завантаження..." : `${listings.length} результатів`}</strong>
+            <span>Запит, категорія, діапазон ціни і сортування працюють напряму через API.</span>
           </div>
           <div className="listing-grid">
             {listings.length ? (
@@ -212,11 +212,11 @@ export function CatalogPage({ categories }: CatalogPageProps) {
               ))
             ) : (
               <div className="empty-card">
-                <strong>{isLoading ? "Refreshing catalog" : "No listings match this filter set"}</strong>
+                <strong>{isLoading ? "Оновлюємо вітрину" : "За цим набором фільтрів нічого не знайдено"}</strong>
                 <p>
                   {isLoading
-                    ? "The board is pulling fresh API data."
-                    : "Try widening the price range, changing the search query or clearing the category filter."}
+                    ? "Каталог завантажує свіжі дані з сервера."
+                    : "Спробуйте розширити ціновий діапазон, змінити запит або очистити категорію."}
                 </p>
               </div>
             )}

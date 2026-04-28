@@ -1,0 +1,20 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 720 540" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="90" y1="60" x2="640" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1f4b99"/>
+      <stop offset="1" stop-color="#6dd5ed"/>
+    </linearGradient>
+    <linearGradient id="card" x1="80" y1="320" x2="580" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fffaf4" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#fff5ea" stop-opacity="0.88"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="540" rx="36" fill="url(#bg)"/>
+  <circle cx="590" cy="120" r="120" fill="#ffffff" fill-opacity="0.10"/>
+  <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
+  <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
+  <rect x="235" y="140" width="250" height="150" rx="16" fill="#0f172a" opacity="0.95"/><rect x="252" y="156" width="216" height="112" rx="10" fill="#dbeafe"/><rect x="215" y="296" width="290" height="20" rx="10" fill="#1e293b"/>
+  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
+  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Electronics</text>
+  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>MacBook Pro 14 M3</text>
+</svg>

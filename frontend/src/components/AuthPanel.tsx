@@ -33,15 +33,19 @@ export function AuthPanel({ onLogin, onRegister }: AuthPanelProps) {
 
   return (
     <section className="auth-panel">
+      <div className="auth-panel__intro">
+        <h3>Увійдіть, щоб публікувати, модерувати та відповідати на повідомлення.</h3>
+        <p>Один кабінет для продавця, модератора і адміністратора без зайвих кроків.</p>
+      </div>
       <div className="auth-tabs">
         <button className={mode === "login" ? "active" : ""} onClick={() => setMode("login")}>
-          Login
+          Увійти
         </button>
         <button
           className={mode === "register" ? "active" : ""}
           onClick={() => setMode("register")}
         >
-          Register
+          Реєстрація
         </button>
       </div>
       <form className="auth-form" onSubmit={handleSubmit}>
@@ -51,12 +55,12 @@ export function AuthPanel({ onLogin, onRegister }: AuthPanelProps) {
         </label>
         {mode === "register" ? (
           <label>
-            Full name
+            Ім&apos;я та прізвище
             <input value={name} onChange={(event) => setName(event.target.value)} />
           </label>
         ) : null}
         <label>
-          Password
+          Пароль
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -65,7 +69,7 @@ export function AuthPanel({ onLogin, onRegister }: AuthPanelProps) {
         </label>
         {error ? <p className="form-error">{error}</p> : null}
         <button className="cta-button" disabled={busy} type="submit">
-          {busy ? "Working..." : mode === "login" ? "Enter workspace" : "Create account"}
+          {busy ? "Працюємо..." : mode === "login" ? "Відкрити кабінет" : "Створити акаунт"}
         </button>
       </form>
     </section>

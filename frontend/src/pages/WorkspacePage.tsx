@@ -28,15 +28,15 @@ export function WorkspacePage(props: WorkspacePageProps) {
       <section className="content-block split-layout workspace-layout">
         <div>
           <SectionTitle
-            eyebrow="Operator layer"
-            title="Auth, publishing and moderation"
-            body="This screen is built as a serious control surface: login, user context, listing publishing and moderation visibility all share one consistent UI language."
+            eyebrow="Кабінет користувача"
+            title="Публікуйте, модеруйтe і тримайте діалог з клієнтом в одному місці"
+            body="Ця зона зібрана навколо реальних задач: увійти без тертя, подати оголошення, побачити чергу модерації й не втратити повідомлення."
           />
           <MetricStrip
             metrics={[
-              { label: "Signed in", value: props.user ? "yes" : "no", tone: "mint" },
-              { label: "Role", value: props.user?.role ?? "guest", tone: "sand" },
-              { label: "Messages", value: String(props.messages.length), tone: "coral" },
+              { label: "Вхід виконано", value: props.user ? "так" : "ні", tone: "mint" },
+              { label: "Роль", value: props.user?.role ?? "guest", tone: "sand" },
+              { label: "Повідомлення", value: String(props.messages.length), tone: "coral" },
             ]}
           />
           <WorkspacePanels {...props} />

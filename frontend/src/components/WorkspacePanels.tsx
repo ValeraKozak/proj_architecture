@@ -62,19 +62,21 @@ export function WorkspacePanels({
     <div className="workspace-grid">
       <section className="workspace-panel">
         <div className="workspace-panel__header">
-          <span className="eyebrow">Control room</span>
-          <h3>{user ? `${user.full_name}'s workspace` : "Workspace preview"}</h3>
+          <span className="eyebrow">Публікація</span>
+          <h3>{user ? `Робоча зона ${user.full_name}` : "Попередній перегляд кабінету"}</h3>
         </div>
         <form className="stack-form" onSubmit={submitListing}>
           <label>
-            Title
+            Назва оголошення
             <input
               value={listingForm.title}
-              onChange={(event) => setListingForm((current) => ({ ...current, title: event.target.value }))}
+              onChange={(event) =>
+                setListingForm((current) => ({ ...current, title: event.target.value }))
+              }
             />
           </label>
           <label>
-            Description
+            Опис
             <textarea
               value={listingForm.description}
               onChange={(event) =>
@@ -84,22 +86,24 @@ export function WorkspacePanels({
           </label>
           <div className="form-row">
             <label>
-              Price
+              Ціна
               <input
                 type="number"
                 value={listingForm.price}
-                onChange={(event) => setListingForm((current) => ({ ...current, price: event.target.value }))}
+                onChange={(event) =>
+                  setListingForm((current) => ({ ...current, price: event.target.value }))
+                }
               />
             </label>
             <label>
-              Category
+              Категорія
               <select
                 value={listingForm.category_id}
                 onChange={(event) =>
                   setListingForm((current) => ({ ...current, category_id: event.target.value }))
                 }
               >
-                <option value="">Select</option>
+                <option value="">Оберіть категорію</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -109,7 +113,7 @@ export function WorkspacePanels({
             </label>
           </div>
           <label>
-            Image URLs
+            Посилання на зображення
             <textarea
               value={listingForm.image_urls}
               placeholder="https://images.example.com/cover.jpg&#10;https://images.example.com/detail.jpg"
@@ -119,34 +123,34 @@ export function WorkspacePanels({
             />
           </label>
           <button className="cta-button" type="submit">
-            Publish listing
+            Опублікувати оголошення
           </button>
         </form>
       </section>
 
       <section className="workspace-panel subtle">
         <div className="workspace-panel__header">
-          <span className="eyebrow">Moderation</span>
-          <h3>Queue and messaging snapshot</h3>
+          <span className="eyebrow">Операційна панель</span>
+          <h3>Модерація, категорії та повідомлення</h3>
         </div>
         <div className="mini-stats">
           <div>
             <strong>{pendingListings.length}</strong>
-            <span>Pending listings</span>
+            <span>Чекають модерації</span>
           </div>
           <div>
             <strong>{messages.length}</strong>
-            <span>Messages</span>
+            <span>Повідомлення</span>
           </div>
           <div>
             <strong>{myListings.length}</strong>
-            <span>Owned listings</span>
+            <span>Мої оголошення</span>
           </div>
         </div>
         {user?.role === "admin" || user?.role === "moderator" ? (
           <form className="stack-form compact" onSubmit={submitCategory}>
             <label>
-              New category
+              Нова категорія
               <input
                 value={categoryForm.name}
                 onChange={(event) =>
@@ -155,7 +159,7 @@ export function WorkspacePanels({
               />
             </label>
             <label>
-              Description
+              Опис категорії
               <input
                 value={categoryForm.description}
                 onChange={(event) =>
@@ -164,20 +168,42 @@ export function WorkspacePanels({
               />
             </label>
             <button className="ghost-button" type="submit">
-              Add category
+              Додати категорію
             </button>
           </form>
         ) : (
           <p className="helper-text">
-            Sign in as `admin` or `moderator` to manage categories directly from the frontend.
+            Увійдіть як `admin` або `moderator`, щоб керувати категоріями прямо з інтерфейсу.
           </p>
         )}
+        <div className="workspace-list-preview">
+          <div>
+            <strong>Черга модерації</strong>
+            <ul>
+              {pendingListings.length ? (
+                pendingListings.slice(0, 3).map((listing) => <li key={listing.id}>{listing.title}</li>)
+              ) : (
+                <li>Наразі немає оголошень у черзі.</li>
+              )}
+            </ul>
+          </div>
+          <div>
+            <strong>Останні повідомлення</strong>
+            <ul>
+              {messages.length ? (
+                messages.slice(0, 3).map((message) => <li key={message.id}>{message.body}</li>)
+              ) : (
+                <li>Поки що повідомлень немає.</li>
+              )}
+            </ul>
+          </div>
+        </div>
       </section>
 
       <section className="workspace-panel wide">
         <div className="workspace-panel__header">
-          <span className="eyebrow">Owned listings</span>
-          <h3>Your current inventory</h3>
+          <span className="eyebrow">Асортимент</span>
+          <h3>Ваші поточні оголошення</h3>
         </div>
         <div className="listing-grid compact">
           {myListings.length ? (
@@ -190,8 +216,8 @@ export function WorkspacePanels({
             ))
           ) : (
             <div className="empty-card">
-              <strong>No listings yet</strong>
-              <p>Create your first post from the control panel to fill this grid.</p>
+              <strong>Поки що немає жодного оголошення</strong>
+              <p>Створіть першу публікацію у верхній формі, і вона одразу з’явиться тут.</p>
             </div>
           )}
         </div>
