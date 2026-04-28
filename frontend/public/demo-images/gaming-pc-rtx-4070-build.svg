@@ -14,7 +14,5 @@
   <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
   <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
   <rect x="255" y="135" width="150" height="215" rx="18" fill="#0f172a"/><rect x="420" y="160" width="90" height="145" rx="18" fill="#111827"/><circle cx="330" cy="200" r="22" fill="#22d3ee" opacity="0.65"/><circle cx="330" cy="255" r="22" fill="#22d3ee" opacity="0.65"/><rect x="438" y="280" width="54" height="10" rx="5" fill="#22d3ee"/>
-  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
-  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Electronics</text>
-  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>Gaming PC RTX 4070 Build</text>
-</svg>
+  </svg>
+

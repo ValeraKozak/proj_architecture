@@ -14,7 +14,5 @@
   <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
   <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
   <rect x="230" y="170" width="300" height="26" rx="13" fill="#6b7280"/><rect x="260" y="196" width="22" height="118" rx="11" fill="#6b7280"/><rect x="478" y="196" width="22" height="118" rx="11" fill="#6b7280"/><rect x="310" y="120" width="110" height="70" rx="14" fill="#0f172a"/><rect x="326" y="136" width="78" height="40" rx="10" fill="#bbf7d0"/>
-  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
-  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Real Estate</text>
-  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>Coworking Desk Downtown</text>
-</svg>
+  </svg>
+

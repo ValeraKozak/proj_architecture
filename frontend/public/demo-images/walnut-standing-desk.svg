@@ -14,7 +14,5 @@
   <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
   <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
   <rect x="210" y="165" width="300" height="36" rx="16" fill="#6f4a2b"/><rect x="235" y="201" width="22" height="128" rx="11" fill="#4b5563"/><rect x="463" y="201" width="22" height="128" rx="11" fill="#4b5563"/><rect x="320" y="110" width="82" height="55" rx="12" fill="#111827"/><rect x="334" y="123" width="54" height="31" rx="8" fill="#dbeafe"/>
-  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
-  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Home &amp; Living</text>
-  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>Walnut Standing Desk</text>
-</svg>
+  </svg>
+

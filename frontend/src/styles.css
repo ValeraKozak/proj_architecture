@@ -432,7 +432,10 @@ main {
 }
 
 .listing-card {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 .listing-card > :not(.listing-card__visual) {
@@ -442,6 +445,7 @@ main {
 
 .listing-card__visual {
   aspect-ratio: 4 / 3;
+  flex-shrink: 0;
   overflow: hidden;
   background: linear-gradient(135deg, rgba(35, 109, 84, 0.18), rgba(200, 139, 50, 0.18));
 }
@@ -489,12 +493,21 @@ main {
   color: var(--text-muted);
   font-size: 0.88rem;
   font-weight: 700;
+  flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .listing-card h4 {
   margin: 14px 0 10px;
   font-size: 1.28rem;
-  line-height: 1.06;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.listing-card p {
+  margin: 0;
+  line-height: 1.58;
+  overflow-wrap: anywhere;
 }
 
 .listing-card__gallery-count,
@@ -508,12 +521,20 @@ main {
 }
 
 .listing-card__footer {
+  margin-top: auto;
   padding-top: 18px;
   padding-bottom: 22px;
 }
 
 .listing-card__footer strong {
   font-size: 1.16rem;
+}
+
+.listing-card__meta > :first-child,
+.catalog-results-bar span,
+.category-pill span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .status-badge {
@@ -523,6 +544,7 @@ main {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  flex-shrink: 0;
 }
 
 .status-badge.approved {
@@ -554,6 +576,7 @@ main {
   display: grid;
   grid-template-columns: 340px 1fr;
   gap: 24px;
+  align-items: start;
 }
 
 .workspace-layout {
@@ -564,12 +587,18 @@ main {
 .catalog-main {
   display: grid;
   gap: 18px;
+  align-content: start;
+  min-width: 0;
 }
 
 .catalog-filter-panel,
 .empty-card,
 .category-pill {
   padding: 22px;
+}
+
+.catalog-filter-panel {
+  align-self: start;
 }
 
 .category-column {
@@ -588,6 +617,7 @@ main {
   justify-content: space-between;
   gap: 16px;
   align-items: center;
+  flex-wrap: wrap;
   margin-bottom: 18px;
   padding: 16px 18px;
   border-radius: 20px;

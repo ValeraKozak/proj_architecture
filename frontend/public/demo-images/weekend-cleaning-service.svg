@@ -14,7 +14,5 @@
   <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
   <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
   <path d="M355 120 C310 180 300 210 300 250 C300 308 332 340 365 340 C398 340 430 308 430 250 C430 210 420 180 375 120 Z" fill="#ffffff" opacity="0.92"/><rect x="345" y="160" width="40" height="190" rx="20" fill="#0f766e"/><path d="M280 300 H450" stroke="#0f766e" stroke-width="22" stroke-linecap="round"/>
-  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
-  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Services</text>
-  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>Weekend Cleaning Service</text>
-</svg>
+  </svg>
+

@@ -14,7 +14,5 @@
   <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
   <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
   <rect x="250" y="130" width="230" height="220" rx="24" fill="#fff7ed"/><rect x="280" y="165" width="50" height="50" rx="10" fill="#bfdbfe"/><rect x="345" y="165" width="50" height="50" rx="10" fill="#bfdbfe"/><rect x="410" y="165" width="40" height="110" rx="10" fill="#bfdbfe"/><rect x="320" y="245" width="90" height="105" rx="14" fill="#a16207"/>
-  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
-  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Real Estate</text>
-  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>Sunny Studio Near Metro</text>
-</svg>
+  </svg>
+

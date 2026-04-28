@@ -14,7 +14,5 @@
   <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
   <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
   <rect x="280" y="190" width="170" height="95" rx="22" fill="#374151"/><rect x="310" y="160" width="110" height="30" rx="15" fill="#4b5563"/><path d="M315 285 L295 340 M415 285 L435 340" stroke="#4b5563" stroke-width="12" stroke-linecap="round"/><path d="M330 220 H400" stroke="#f97316" stroke-width="10" stroke-linecap="round"/>
-  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
-  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Garden &amp; Outdoor</text>
-  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>Gas Grill 4 Burner</text>
-</svg>
+  </svg>
+

@@ -212,7 +212,11 @@ export function CatalogPage({ categories }: CatalogPageProps) {
               ))
             ) : (
               <div className="empty-card">
-                <strong>{isLoading ? "Оновлюємо вітрину" : "За цим набором фільтрів нічого не знайдено"}</strong>
+                <strong>
+                  {isLoading
+                    ? "Оновлюємо вітрину"
+                    : "За цим набором фільтрів нічого не знайдено"}
+                </strong>
                 <p>
                   {isLoading
                     ? "Каталог завантажує свіжі дані з сервера."

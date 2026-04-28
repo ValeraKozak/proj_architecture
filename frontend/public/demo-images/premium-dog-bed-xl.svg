@@ -14,7 +14,5 @@
   <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
   <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
   <ellipse cx="365" cy="290" rx="120" ry="55" fill="#ddd6fe"/><ellipse cx="365" cy="290" rx="92" ry="34" fill="#f5f3ff"/><circle cx="330" cy="225" r="28" fill="#8b5cf6" opacity="0.9"/><circle cx="400" cy="225" r="28" fill="#8b5cf6" opacity="0.9"/>
-  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
-  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Pets</text>
-  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>Premium Dog Bed XL</text>
-</svg>
+  </svg>
+

@@ -14,7 +14,5 @@
   <circle cx="110" cy="90" r="80" fill="#ffffff" fill-opacity="0.08"/>
   <rect x="36" y="34" width="648" height="472" rx="34" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.22"/>
   <path d="M305 150 L350 120 L380 145 L425 120 L465 150 L430 330 H300 Z" fill="#8eb3d1"/><path d="M350 120 L365 330" stroke="#5b7da1" stroke-width="10"/><path d="M325 210 H405" stroke="#5b7da1" stroke-width="12" stroke-linecap="round"/>
-  <rect x="36" y="346" width="648" height="158" rx="30" fill="url(#card)"/>
-  <text x="54" y="382" fill="#236d54" font-size="18" font-weight="800" letter-spacing="3.2" font-family="Segoe UI, Arial, sans-serif">Fashion</text>
-  <text x='54' y='402' fill='#0f172a' font-size='34' font-weight='700' font-family='Segoe UI, Arial, sans-serif'>Vintage Denim Jacket</text>
-</svg>
+  </svg>
+
