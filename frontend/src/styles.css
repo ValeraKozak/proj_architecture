@@ -819,6 +819,19 @@ main {
   font-weight: 700;
 }
 
+.form-success {
+  margin: 0;
+  color: #15644c;
+  font-weight: 700;
+}
+
+.cta-button:disabled,
+.ghost-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
 .helper-text {
   margin-top: 0;
 }
