@@ -1,8 +1,8 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session, selectinload
 
+from src.db.database import DatabaseSession
 from src.dto.schemas import DeleteResponseDTO, ListingCreateDTO, ListingUpdateDTO
 from src.models.entities import Category, Listing, ListingImage, ListingStatus, Role, User
 from src.repositories.listing_repository import ListingRepository
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ListingService:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: DatabaseSession) -> None:
         self.db = db
         self.listings = ListingRepository(db)
 
@@ -79,7 +79,7 @@ class ListingService:
         )
 
     def get_by_id(self, listing_id: int, current_user: User | None = None) -> Listing:
-        listing = self._query_with_images().filter(Listing.id == listing_id).one_or_none()
+        listing = self.db.get(Listing, listing_id)
         if listing is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
         if listing.status == ListingStatus.APPROVED:
@@ -104,15 +104,12 @@ class ListingService:
         return DeleteResponseDTO(message="Listing deleted")
 
     def _get_owned_listing(self, listing_id: int, owner_id: int) -> Listing:
-        listing = self._query_with_images().filter(Listing.id == listing_id).one_or_none()
+        listing = self.db.get(Listing, listing_id)
         if listing is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
         if listing.owner_id != owner_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your listing")
         return listing
-
-    def _query_with_images(self):
-        return self.db.query(Listing).options(selectinload(Listing.images))
 
     @staticmethod
     def _set_images(listing: Listing, image_urls) -> None:

@@ -1,14 +1,6 @@
 import enum
-from datetime import datetime
-
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from src.db.database import Base
-
-
-def enum_values(enum_cls: type[enum.StrEnum]) -> list[str]:
-    return [member.value for member in enum_cls]
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 
 
 class Role(enum.StrEnum):
@@ -25,101 +17,60 @@ class ListingStatus(enum.StrEnum):
     ARCHIVED = "archived"
 
 
-class User(Base):
-    __tablename__ = "users"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    full_name: Mapped[str] = mapped_column(String(255))
-    password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[Role] = mapped_column(
-        Enum(Role, name="role", values_callable=enum_values),
-        default=Role.USER,
-    )
-    is_blocked: Mapped[bool] = mapped_column(default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-    listings: Mapped[list["Listing"]] = relationship(
-        back_populates="owner",
-        cascade="all, delete-orphan",
-    )
-    sent_messages: Mapped[list["Message"]] = relationship(
-        back_populates="sender", foreign_keys="Message.sender_id"
-    )
-    received_messages: Mapped[list["Message"]] = relationship(
-        back_populates="recipient", foreign_keys="Message.recipient_id"
-    )
+def utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
-class Category(Base):
-    __tablename__ = "categories"
+@dataclass
+class User:
+    id: int | None = None
+    email: str = ""
+    full_name: str = ""
+    password_hash: str = ""
+    role: Role = Role.USER
+    is_blocked: bool = False
+    created_at: datetime = field(default_factory=utc_now)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), unique=True, index=True)
-    description: Mapped[str] = mapped_column(String(255))
 
-    listings: Mapped[list["Listing"]] = relationship(back_populates="category")
+@dataclass
+class Category:
+    id: int | None = None
+    name: str = ""
+    description: str = ""
 
 
-class Listing(Base):
-    __tablename__ = "listings"
+@dataclass
+class ListingImage:
+    id: int | None = None
+    listing_id: int | None = None
+    url: str = ""
+    position: int = 0
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(150), index=True)
-    description: Mapped[str] = mapped_column(Text())
-    price: Mapped[float] = mapped_column(Float())
-    status: Mapped[ListingStatus] = mapped_column(
-        Enum(ListingStatus, name="listingstatus", values_callable=enum_values),
-        default=ListingStatus.DRAFT,
-    )
-    rejection_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
 
-    owner: Mapped[User] = relationship(back_populates="listings")
-    category: Mapped[Category] = relationship(back_populates="listings")
-    messages: Mapped[list["Message"]] = relationship(
-        back_populates="listing",
-        cascade="all, delete-orphan",
-    )
-    images: Mapped[list["ListingImage"]] = relationship(
-        back_populates="listing",
-        cascade="all, delete-orphan",
-        order_by="ListingImage.position",
-    )
+@dataclass
+class Listing:
+    id: int | None = None
+    title: str = ""
+    description: str = ""
+    price: float = 0.0
+    status: ListingStatus = ListingStatus.DRAFT
+    rejection_reason: str | None = None
+    owner_id: int | None = None
+    category_id: int | None = None
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
+    images: list[ListingImage] = field(default_factory=list)
 
     @property
     def image_urls(self) -> list[str]:
         return [image.url for image in sorted(self.images, key=lambda image: image.position)]
 
 
-class Message(Base):
-    __tablename__ = "messages"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id", ondelete="CASCADE"))
-    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    recipient_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    body: Mapped[str] = mapped_column(Text())
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-    listing: Mapped[Listing] = relationship(back_populates="messages")
-    sender: Mapped[User] = relationship(back_populates="sent_messages", foreign_keys=[sender_id])
-    recipient: Mapped[User] = relationship(
-        back_populates="received_messages", foreign_keys=[recipient_id]
-    )
-
-
-class ListingImage(Base):
-    __tablename__ = "listing_images"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id", ondelete="CASCADE"))
-    url: Mapped[str] = mapped_column(String(2048))
-    position: Mapped[int] = mapped_column(default=0)
-
-    listing: Mapped[Listing] = relationship(back_populates="images")
+@dataclass
+class Message:
+    id: int | None = None
+    listing_id: int | None = None
+    sender_id: int | None = None
+    recipient_id: int | None = None
+    body: str = ""
+    created_at: datetime = field(default_factory=utc_now)

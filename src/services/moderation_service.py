@@ -1,8 +1,8 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 
+from src.db.database import DatabaseSession
 from src.dto.schemas import ModerationDecisionDTO
 from src.models.entities import Listing, ListingStatus
 
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class ModerationService:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: DatabaseSession) -> None:
         self.db = db
 
     def review(self, listing_id: int, payload: ModerationDecisionDTO) -> Listing:

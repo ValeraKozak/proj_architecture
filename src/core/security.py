@@ -6,11 +6,11 @@ from datetime import UTC, datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
 
 from src.core.config import get_settings
-from src.db.database import get_db
+from src.db.database import DatabaseSession, get_db
 from src.models.entities import Role, User
+from src.repositories.user_repository import UserRepository
 
 security = HTTPBearer()
 
@@ -41,7 +41,7 @@ def create_access_token(subject: str) -> str:
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
 ) -> User:
     settings = get_settings()
     token = credentials.credentials
@@ -53,7 +53,7 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token",
         ) from exc
-    user = db.query(User).filter(User.email == email).one_or_none()
+    user = UserRepository(db).get_by_email(email)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user

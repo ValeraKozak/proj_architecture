@@ -1,8 +1,8 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 
+from src.db.database import DatabaseSession
 from src.dto.schemas import CategoryCreateDTO, CategoryUpdateDTO
 from src.models.entities import Category
 from src.repositories.category_repository import CategoryRepository
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class CategoryService:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: DatabaseSession) -> None:
         self.db = db
         self.categories = CategoryRepository(db)
 

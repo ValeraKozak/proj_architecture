@@ -1,25 +1,24 @@
 # Платформа Для Дошки Оголошень
 
-Навчальний backend-проєкт для розміщення оголошень, категоризації, модерації контенту та обміну повідомленнями між користувачами.
+Навчальний проєкт на `FastAPI` для розміщення оголошень, модерації, категорій і повідомлень між користувачами. Поточна версія використовує `MongoDB` як основну базу даних і зберігає зовнішній API з числовими `id`, щоб не ламати frontend.
 
 ## Основні можливості
-- реєстрація та логін через JWT;
-- ролі `user`, `moderator`, `admin`;
-- створення й редагування оголошень;
-- зображення для оголошень через URL-галерею;
-- модерація публікацій;
-- повідомлення між користувачами;
-- пошук, фільтри та сортування каталогу;
-- OpenAPI документація через FastAPI;
-- unit та integration тести;
-- Docker, `docker-compose` і GitHub Actions CI.
+- JWT-реєстрація та логін
+- ролі `user`, `moderator`, `admin`
+- створення, редагування і видалення оголошень
+- модерація оголошень
+- повідомлення між користувачами
+- пошук, фільтри й сортування каталогу
+- OpenAPI / Swagger
+- unit та integration тести
+- Docker, CI/CD, production frontend через `nginx`
 
 ## Технологічний стек
 - Python 3.11
 - FastAPI
-- SQLAlchemy 2
-- PostgreSQL / SQLite
-- PyTest
+- MongoDB
+- PyMongo
+- PyTest + mongomock
 - Docker
 - GitHub Actions
 
@@ -35,102 +34,71 @@ tests/
   unit/
   integration/
 db/
-  migrations/
   seed/
 docs/
   diagrams/
   spec/
+frontend/
 ```
 
 ## Локальний запуск
-```bash
-python -m venv .venv
-. .venv/Scripts/activate
-pip install -e .[dev]
-copy .env.example .env
+```powershell
+py -m venv .venv
+. .venv\Scripts\Activate.ps1
+py -m pip install -e .[dev]
+Copy-Item .env.example .env
 uvicorn src.main:app --reload
 ```
 
-Для локального запуску без Docker заміни `APP_DATABASE_URL` у `.env` на:
+Для локального запуску MongoDB має бути доступна за URL з `.env`, наприклад:
 ```env
-APP_DATABASE_URL=sqlite:///./bulletin_board.db
+APP_DATABASE_URL=mongodb://localhost:27017/bulletin_board
 ```
 
-Для Docker Compose залишай PostgreSQL-URL з драйвером `postgresql+psycopg://...`.
+Swagger:
+- `http://127.0.0.1:8000/docs`
 
-## Одинарний запуск
-Локально весь dev-стек можна підняти однією командою:
+Frontend окремо:
 ```powershell
-.\run.ps1
-```
-
-Скрипт відкриває два окремі PowerShell-вікна:
-- backend на `http://127.0.0.1:8000`
-- frontend на `http://127.0.0.1:5173`
-
-## Frontend запуск
-```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Frontend dev server очікує backend на `http://127.0.0.1:8000` і за замовчуванням запускається на `http://127.0.0.1:5173`.
-Каталог підтримує серверний пошук, фільтрацію за категорією і ціною, а також сортування.
-
-## Тести
-```bash
-pytest --cov=src --cov-report=term-missing
+## Одинарний запуск
+```powershell
+.\run.ps1
 ```
 
 ## Docker
-```bash
-copy .env.example .env
+```powershell
+Copy-Item .env.example .env
 docker compose up --build
 ```
 
-Під час контейнерного запуску застосунок автоматично виконує SQL-міграції з `db/migrations/`.
-`docker compose up --build` тепер піднімає `db + api + frontend`.
-Frontend у Docker запускається як production build через `nginx`, а запити на `/api/*`
-проксіюються в backend-сервіс.
+Контейнери:
+- API: `http://127.0.0.1:8000`
+- Swagger: `http://127.0.0.1:8000/docs`
+- Frontend: `http://127.0.0.1:5173`
+- MongoDB: `mongodb://localhost:27017`
+
+## Тести
+```powershell
+py -m pytest --cov=src --cov-report=term-missing
+```
 
 ## Документація
 - [Вимоги](docs/spec/requirements.md)
 - [Архітектура](docs/spec/architecture.md)
 - [База даних](docs/spec/database.md)
-- [API та OpenAPI](docs/spec/api.md)
+- [API](docs/spec/api.md)
 - [Frontend User Guide](docs/spec/frontend.md)
-- [Розгортання та CI/CD](docs/spec/deployment.md)
-- [Тестування](docs/spec/testing.md)
-- [Доменна модель](docs/diagrams/domain-model.md)
-- [Use Case Diagram](docs/diagrams/use-case-diagram.mmd)
-- [ER Diagram](docs/diagrams/er-diagram.mmd)
-- [Class Diagram](docs/diagrams/class-diagram.mmd)
-- [Фінальна презентація](docs/presentation/final-presentation-notes.md)
-
-## API
-- Swagger UI: `/docs`
-- ReDoc: `/redoc`
-- healthcheck: `/health`
-
-## Розгалуження
-- `main`: стабільна гілка, готова до демонстрації або релізу.
-- feature branches: окремі гілки під задачі, наприклад `feature/full-crud`.
-- pull request: злиття в `main` після проходження CI.
-
-## Розгортання
-1. Створити `.env` на основі `.env.example`.
-2. Переконатися, що Docker і Docker Compose доступні.
-3. Запустити `docker compose up --build`.
-4. Відкрити `http://localhost:8000/docs`.
-5. Для продакшн-середовища замінити `APP_SECRET_KEY` і паролі БД.
-6. Після push у `main` CD workflow публікує контейнер у GitHub Container Registry.
+- [Deployment](docs/spec/deployment.md)
+- [Testing](docs/spec/testing.md)
 
 ## Безпека
-- JWT для автентифікації;
-- RBAC для модерації та керування категоріями;
-- Pydantic валідація;
-- ORM для захисту від SQL injection;
-- явні перевірки прав доступу в сервісному шарі;
-- `.env` для секретів і середовищних налаштувань;
-- структуроване логування HTTP-запитів.
+- JWT для автентифікації
+- RBAC для доступу до модерації та керування користувачами
+- валідація через Pydantic
+- ізоляція persistence-логіки в репозиторіях
+- конфігурація через `.env`

@@ -1,42 +1,29 @@
-# Розгортання Та CI/CD
+# Розгортання
+
+## Локально
+1. Створити `.env` на основі `.env.example`
+2. Запустити MongoDB локально або через Docker
+3. Підняти API:
+   `uvicorn src.main:app --reload`
+4. Підняти frontend:
+   `cd frontend && npm run dev`
 
 ## Docker Compose
-1. Скопіювати `.env.example` у `.env`
-2. Заповнити безпечні значення для `APP_SECRET_KEY` і паролів БД
-3. Виконати `docker compose up --build`
-4. Перевірити `http://localhost:8000/health`
-5. Відкрити `http://localhost:8000/docs`
+```powershell
+docker compose up --build
+```
 
-`.env.example` уже налаштований для Docker Compose через
-`postgresql+psycopg://postgres:postgres@db:5432/bulletin_board`.
-Для локального запуску без Docker слід використовувати SQLite-URL.
-Frontend у контейнерному режимі збирається у production bundle і віддається через `nginx`.
-`nginx` також проксіює `/api/` запити до backend-сервісу.
-PostgreSQL контейнер публікується на хості як `localhost:5433`, щоб не конфліктувати
-з локально встановленим PostgreSQL.
+Stack:
+- `db` — MongoDB
+- `api` — FastAPI
+- `frontend` — production build через `nginx`
 
-## CI
-GitHub Actions workflow:
-- інсталює залежності;
-- запускає `ruff check .`;
-- запускає `pytest`;
-- генерує `coverage.xml` і `pytest-report.xml`;
-- зберігає звіти як артефакти;
-- окремо піднімає PostgreSQL service і перевіряє застосування SQL-міграцій.
+## CI/CD
+- `CI` запускає lint і тести
+- окремий `mongodb-smoke` job перевіряє bootstrap Mongo-підходу
 
-## CD
-У репозиторії реалізовано окремий CD workflow:
-- push у `main` запускає публікацію Docker-образу;
-- образ публікується в `ghcr.io/<owner>/<repo>/bulletin-board-platform`;
-- workflow також можна запустити вручну через `workflow_dispatch`.
-
-## Політика гілок
-- `main`: стабільний код
-- `feature/*`: розробка нових функцій
-- `fix/*`: виправлення помилок
-- merge у `main` лише після зеленого CI
-
-## Секрети
-- не зберігати справжні токени або production-паролі в git;
-- використовувати `.env` локально та GitHub Secrets у CI/CD;
-- регулярно змінювати `APP_SECRET_KEY` у production.
+## Змінні середовища
+Основна змінна:
+```env
+APP_DATABASE_URL=mongodb://db:27017/bulletin_board
+```

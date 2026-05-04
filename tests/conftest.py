@@ -1,41 +1,29 @@
 import os
 
-os.environ.setdefault("APP_DATABASE_URL", "sqlite+pysqlite:///:memory:")
+os.environ.setdefault("APP_DATABASE_URL", "mongomock://localhost/bulletin_board_test")
 
+import mongomock
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from src.core.security import create_access_token
-from src.db.database import Base, get_db
+from src.db.database import DatabaseSession, get_db, initialize_database, reset_database
 from src.main import app
 from src.models.entities import Category, Listing, ListingStatus, Role, User
-
-TEST_DB_URL = "sqlite+pysqlite:///:memory:"
-engine = create_engine(
-    TEST_DB_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-@pytest.fixture(autouse=True)
-def reset_db():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture
 def db_session():
-    session = TestingSessionLocal()
+    client = mongomock.MongoClient()
+    database = client["bulletin_board_test"]
+    initialize_database(database)
+    session = DatabaseSession(database)
+    reset_database(session)
+    initialize_database(database)
     try:
         yield session
     finally:
+        reset_database(session)
         session.close()
 
 
@@ -81,10 +69,6 @@ def seeded_users(db_session):
     )
     db_session.add_all([owner, moderator, buyer, admin])
     db_session.commit()
-    db_session.refresh(owner)
-    db_session.refresh(moderator)
-    db_session.refresh(buyer)
-    db_session.refresh(admin)
     return {"owner": owner, "moderator": moderator, "buyer": buyer, "admin": admin}
 
 
@@ -93,7 +77,6 @@ def seeded_category(db_session):
     category = Category(name="Electronics", description="Phones and laptops")
     db_session.add(category)
     db_session.commit()
-    db_session.refresh(category)
     return category
 
 
@@ -109,7 +92,6 @@ def approved_listing(db_session, seeded_users, seeded_category):
     )
     db_session.add(listing)
     db_session.commit()
-    db_session.refresh(listing)
     return listing
 
 

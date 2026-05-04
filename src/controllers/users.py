@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
 
 from src.core.security import get_current_user, require_role
-from src.db.database import get_db
+from src.db.database import DatabaseSession, get_db
 from src.dto.schemas import DeleteResponseDTO, UserAdminUpdateDTO, UserReadDTO, UserUpdateDTO
 from src.models.entities import Role, User
 from src.services.user_service import UserService
@@ -18,7 +17,7 @@ def get_me(current_user: User = Depends(get_current_user)) -> UserReadDTO:
 @router.patch("/me", response_model=UserReadDTO)
 def update_me(
     payload: UserUpdateDTO,
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> UserReadDTO:
     return UserService(db).update_self(current_user, payload)
@@ -26,7 +25,7 @@ def update_me(
 
 @router.get("", response_model=list[UserReadDTO])
 def list_users(
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
     _: User = Depends(require_role(Role.ADMIN)),
 ) -> list[UserReadDTO]:
     return UserService(db).list_all()
@@ -35,7 +34,7 @@ def list_users(
 @router.get("/{user_id}", response_model=UserReadDTO)
 def get_user(
     user_id: int,
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
     _: User = Depends(require_role(Role.ADMIN)),
 ) -> UserReadDTO:
     return UserService(db).get_by_id(user_id)
@@ -45,7 +44,7 @@ def get_user(
 def update_user(
     user_id: int,
     payload: UserAdminUpdateDTO,
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
     _: User = Depends(require_role(Role.ADMIN)),
 ) -> UserReadDTO:
     return UserService(db).update_by_admin(user_id, payload)
@@ -54,7 +53,7 @@ def update_user(
 @router.delete("/{user_id}", response_model=DeleteResponseDTO, status_code=status.HTTP_200_OK)
 def delete_user(
     user_id: int,
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
     _: User = Depends(require_role(Role.ADMIN)),
 ) -> DeleteResponseDTO:
     UserService(db).delete(user_id)

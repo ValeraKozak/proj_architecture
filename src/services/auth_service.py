@@ -1,14 +1,14 @@
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 
 from src.core.security import create_access_token, hash_password, verify_password
+from src.db.database import DatabaseSession
 from src.dto.schemas import TokenDTO, UserCreateDTO, UserLoginDTO
 from src.models.entities import User
 from src.repositories.user_repository import UserRepository
 
 
 class AuthService:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: DatabaseSession) -> None:
         self.db = db
         self.users = UserRepository(db)
 

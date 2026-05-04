@@ -1,8 +1,8 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 
+from src.db.database import DatabaseSession
 from src.dto.schemas import UserAdminUpdateDTO, UserUpdateDTO
 from src.models.entities import Role, User
 from src.repositories.user_repository import UserRepository
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class UserService:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: DatabaseSession) -> None:
         self.db = db
         self.users = UserRepository(db)
 
@@ -37,14 +37,18 @@ class UserService:
         if "role" in data and data["role"] == Role.ADMIN and user.role != Role.ADMIN:
             logger.info("User promoted to admin user_id=%s", user.id)
         for field, value in data.items():
-            setattr(user, field, value.strip() if isinstance(value, str) else value)
+            if field == "role" and isinstance(value, str):
+                value = Role(value)
+            if isinstance(value, str) and field != "role":
+                value = value.strip()
+            setattr(user, field, value)
         self.db.commit()
         self.db.refresh(user)
         return user
 
     def delete(self, user_id: int) -> None:
         user = self.get_by_id(user_id)
-        if user.listings or user.sent_messages or user.received_messages:
+        if self.users.has_related_content(user_id):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Cannot delete user with related listings or messages",

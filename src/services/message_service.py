@@ -1,8 +1,8 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 
+from src.db.database import DatabaseSession
 from src.dto.schemas import DeleteResponseDTO, MessageCreateDTO
 from src.models.entities import Listing, ListingStatus, Message, User
 from src.repositories.message_repository import MessageRepository
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class MessageService:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: DatabaseSession) -> None:
         self.db = db
         self.messages = MessageRepository(db)
 

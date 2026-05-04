@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 
 from src.core.security import require_role
-from src.db.database import get_db
+from src.db.database import DatabaseSession, get_db
 from src.dto.schemas import CategoryCreateDTO, CategoryReadDTO, CategoryUpdateDTO, DeleteResponseDTO
 from src.models.entities import Role, User
 from src.services.category_service import CategoryService
@@ -13,19 +12,19 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 @router.post("", response_model=CategoryReadDTO, status_code=201)
 def create_category(
     payload: CategoryCreateDTO,
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
     _: User = Depends(require_role(Role.ADMIN, Role.MODERATOR)),
 ) -> CategoryReadDTO:
     return CategoryService(db).create(payload)
 
 
 @router.get("", response_model=list[CategoryReadDTO])
-def list_categories(db: Session = Depends(get_db)) -> list[CategoryReadDTO]:
+def list_categories(db: DatabaseSession = Depends(get_db)) -> list[CategoryReadDTO]:
     return CategoryService(db).list_all()
 
 
 @router.get("/{category_id}", response_model=CategoryReadDTO)
-def get_category(category_id: int, db: Session = Depends(get_db)) -> CategoryReadDTO:
+def get_category(category_id: int, db: DatabaseSession = Depends(get_db)) -> CategoryReadDTO:
     return CategoryService(db).get_by_id(category_id)
 
 
@@ -33,7 +32,7 @@ def get_category(category_id: int, db: Session = Depends(get_db)) -> CategoryRea
 def update_category(
     category_id: int,
     payload: CategoryUpdateDTO,
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
     _: User = Depends(require_role(Role.ADMIN, Role.MODERATOR)),
 ) -> CategoryReadDTO:
     return CategoryService(db).update(category_id, payload)
@@ -42,7 +41,7 @@ def update_category(
 @router.delete("/{category_id}", response_model=DeleteResponseDTO)
 def delete_category(
     category_id: int,
-    db: Session = Depends(get_db),
+    db: DatabaseSession = Depends(get_db),
     _: User = Depends(require_role(Role.ADMIN)),
 ) -> DeleteResponseDTO:
     CategoryService(db).delete(category_id)

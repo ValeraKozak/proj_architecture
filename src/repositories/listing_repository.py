@@ -1,5 +1,7 @@
-from sqlalchemy import or_
-from sqlalchemy.orm import selectinload
+from datetime import datetime
+from re import escape
+
+from pymongo import ASCENDING, DESCENDING
 
 from src.models.entities import Category, Listing, ListingStatus
 from src.repositories.base import Repository
@@ -19,45 +21,51 @@ class ListingRepository(Repository[Listing]):
         sort_by: str = "created_at",
         sort_order: str = "desc",
     ) -> list[Listing]:
-        listing_query = (
-            self.db.query(Listing)
-            .options(selectinload(Listing.images))
-            .join(Category)
-            .filter(Listing.status == ListingStatus.APPROVED)
-        )
-        if query:
-            pattern = f"%{query.strip()}%"
-            listing_query = listing_query.filter(
-                or_(
-                    Listing.title.ilike(pattern),
-                    Listing.description.ilike(pattern),
-                    Category.name.ilike(pattern),
-                )
-            )
+        mongo_query: dict[str, object] = {"status": ListingStatus.APPROVED.value}
         if category_id is not None:
-            listing_query = listing_query.filter(Listing.category_id == category_id)
-        if min_price is not None:
-            listing_query = listing_query.filter(Listing.price >= min_price)
-        if max_price is not None:
-            listing_query = listing_query.filter(Listing.price <= max_price)
+            mongo_query["category_id"] = category_id
+        if min_price is not None or max_price is not None:
+            price_filter: dict[str, float] = {}
+            if min_price is not None:
+                price_filter["$gte"] = min_price
+            if max_price is not None:
+                price_filter["$lte"] = max_price
+            mongo_query["price"] = price_filter
+        if query:
+            category_ids = [
+                category.id
+                for category in self.db.find_many(
+                    Category,
+                    {"name": {"$regex": escape(query.strip()), "$options": "i"}},
+                )
+            ]
+            mongo_query["$or"] = [
+                {"title": {"$regex": escape(query.strip()), "$options": "i"}},
+                {"description": {"$regex": escape(query.strip()), "$options": "i"}},
+                {"category_id": {"$in": category_ids or [-1]}},
+            ]
 
-        sort_column = Listing.price if sort_by == "price" else Listing.created_at
-        sort_expression = sort_column.asc() if sort_order == "asc" else sort_column.desc()
-        return list(listing_query.order_by(sort_expression, Listing.id.desc()).all())
+        sort_direction = ASCENDING if sort_order == "asc" else DESCENDING
+        sort_field = "price" if sort_by == "price" else "created_at"
+        return self.db.find_many(
+            Listing,
+            mongo_query,
+            sort=[(sort_field, sort_direction), ("id", DESCENDING)],
+        )
 
     def list_for_moderation(self) -> list[Listing]:
-        return list(
-            self.db.query(Listing)
-            .options(selectinload(Listing.images))
-            .filter(Listing.status == ListingStatus.PENDING)
-            .all()
+        return self.db.find_many(
+            Listing,
+            {"status": ListingStatus.PENDING.value},
+            sort=[("created_at", DESCENDING), ("id", DESCENDING)],
         )
 
     def list_owned(self, owner_id: int) -> list[Listing]:
-        return list(
-            self.db.query(Listing)
-            .options(selectinload(Listing.images))
-            .filter(Listing.owner_id == owner_id)
-            .order_by(Listing.created_at.desc(), Listing.id.desc())
-            .all()
+        return self.db.find_many(
+            Listing,
+            {"owner_id": owner_id},
+            sort=[("created_at", DESCENDING), ("id", DESCENDING)],
         )
+
+    def touch(self, listing: Listing) -> None:
+        listing.updated_at = datetime.utcnow()

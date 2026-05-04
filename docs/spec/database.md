@@ -1,48 +1,30 @@
 # База Даних
 
-## Вибір технології
-Обрано SQL-підхід із PostgreSQL як основною цільовою БД. Причини:
-- природні зв'язки між користувачами, категоріями, оголошеннями та повідомленнями;
-- потрібна транзакційність для модерації та обміну повідомленнями;
-- схема добре нормалізується і зручна для ORM.
+## Обрано MongoDB
+Поточна версія проєкту використовує `MongoDB` як основну базу даних.
 
-Для локального швидкого запуску та тестів дозволено SQLite.
-
-## Основні сутності
+## Колекції
 - `users`
 - `categories`
 - `listings`
 - `listing_images`
 - `messages`
+- `counters`
+
+## Ідентифікатори
+Зовнішній API зберігає числові `id`. Для цього в MongoDB використовується службова колекція `counters`, яка видає наступний integer id для кожної колекції.
+
+## Індекси
+- `users.email` — unique
+- `categories.name` — unique
+- `listings(status, created_at)` — для каталогу та модерації
+- `listing_images(listing_id, position)` — для галерей
+- `messages(listing_id, created_at)` — для читання переписок
 
 ## Нормалізація
-- Категорії винесено в окрему таблицю.
-- Повідомлення не дублюють дані користувачів або оголошень, а посилаються на них через FK.
-- Статус модерації зберігається на рівні оголошення.
+Документна модель комбінує два підходи:
+- основні сутності зберігаються окремими колекціями;
+- галерея оголошення збирається з `listing_images`, щоб не ламати наявний API і тестові сценарії.
 
-## ER-структура
-- `users (1) -> (N) listings`
-- `categories (1) -> (N) listings`
-- `listings (1) -> (N) messages`
-- `listings (1) -> (N) listing_images`
-- `users (1) -> (N) messages` як `sender`
-- `users (1) -> (N) messages` як `recipient`
-
-## DTO
-- `UserCreateDTO`, `UserLoginDTO`
-- `UserUpdateDTO`, `UserAdminUpdateDTO`
-- `CategoryCreateDTO`
-- `CategoryUpdateDTO`
-- `ListingCreateDTO`, `ListingUpdateDTO`
-- `ModerationDecisionDTO`
-- `MessageCreateDTO`
-
-## Міграції
-Початкова SQL-міграція знаходиться в `db/migrations/001_initial_schema.sql`.
-Для PostgreSQL застосунок під час старту виконує SQL-міграції з каталогу `db/migrations/`
-та фіксує їх у таблиці `schema_migrations`.
-Для SQLite в локальному режимі й unit/integration тестах використовується `Base.metadata.create_all`.
-
-## Локальна та контейнерна БД
-- Для unit/integration тестів використовується SQLite in-memory.
-- Для контейнерного та наближеного до production запуску використовується PostgreSQL.
+## Тестування
+У тестах використовується `mongomock`, тому unit та integration тести не залежать від реального локального MongoDB-сервера.

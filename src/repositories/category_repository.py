@@ -1,4 +1,4 @@
-from src.models.entities import Category
+from src.models.entities import Category, Listing
 from src.repositories.base import Repository
 
 
@@ -7,8 +7,7 @@ class CategoryRepository(Repository[Category]):
         super().__init__(db, Category)
 
     def get_by_name(self, name: str) -> Category | None:
-        return self.db.query(Category).filter(Category.name == name).one_or_none()
+        return self.db.find_one(Category, {"name": name})
 
     def has_related_listings(self, category_id: int) -> bool:
-        category = self.get(category_id)
-        return bool(category and category.listings)
+        return self.db.count(Listing, {"category_id": category_id}) > 0

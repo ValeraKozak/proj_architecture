@@ -1,37 +1,29 @@
-from src.db.database import _split_sql_statements
+import mongomock
+
+from src.db.database import DatabaseSession, initialize_database, reset_database
+from src.models.entities import Category, User
 
 
-def test_split_sql_statements_keeps_do_blocks_intact():
-    script = """
-    DO $$
-    BEGIN
-        CREATE TYPE role AS ENUM ('user', 'moderator', 'admin');
-    EXCEPTION
-        WHEN duplicate_object THEN NULL;
-    END $$;
+def test_initialize_database_creates_expected_collections():
+    database = mongomock.MongoClient()["bootstrap_test"]
 
-    CREATE TABLE example (
-        id INTEGER PRIMARY KEY,
-        note TEXT NOT NULL DEFAULT 'hello;world'
-    );
-    """
+    initialize_database(database)
 
-    statements = _split_sql_statements(script)
-
-    assert len(statements) == 2
-    assert "CREATE TYPE role AS ENUM" in statements[0]
-    assert "END $$" in statements[0]
-    assert "CREATE TABLE example" in statements[1]
+    assert {"users", "categories", "listings", "listing_images", "messages"}.issubset(
+        set(database.list_collection_names())
+    )
 
 
-def test_split_sql_statements_preserves_semicolons_inside_quotes():
-    script = """
-    INSERT INTO example (note) VALUES ('draft;pending');
-    INSERT INTO example (note) VALUES ("quoted;identifier");
-    """
+def test_reset_database_clears_collections_but_keeps_runtime_usable():
+    database = mongomock.MongoClient()["reset_test"]
+    initialize_database(database)
+    session = DatabaseSession(database)
+    session.add(User(email="reset@example.com", full_name="Reset User", password_hash="hashed"))
+    session.add(Category(name="Reset", description="Reset description"))
+    session.commit()
 
-    statements = _split_sql_statements(script)
+    reset_database(session)
+    initialize_database(database)
 
-    assert len(statements) == 2
-    assert "draft;pending" in statements[0]
-    assert '"quoted;identifier"' in statements[1]
+    assert database["users"].count_documents({}) == 0
+    assert database["categories"].count_documents({}) == 0
