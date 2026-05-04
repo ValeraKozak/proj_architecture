@@ -147,4 +147,14 @@ export const api = {
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload),
     }),
+  moderateListing: (
+    token: string,
+    listing_id: number,
+    payload: { approved: boolean; rejection_reason?: string | null },
+  ) =>
+    request<Listing>(`/moderation/listings/${listing_id}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    }),
 };

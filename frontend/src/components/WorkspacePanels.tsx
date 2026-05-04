@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 import type { Category, Listing, Message, User } from "../lib/types";
 import { ListingCard } from "./ListingCard";
@@ -17,6 +17,10 @@ interface WorkspacePanelsProps {
     image_urls: string[];
   }) => Promise<void>;
   onCreateCategory: (payload: { name: string; description: string }) => Promise<void>;
+  onModerateListing: (
+    listing_id: number,
+    payload: { approved: boolean; rejection_reason?: string | null },
+  ) => Promise<void>;
 }
 
 export function WorkspacePanels({
@@ -27,8 +31,14 @@ export function WorkspacePanels({
   messages,
   onCreateListing,
   onCreateCategory,
+  onModerateListing,
 }: WorkspacePanelsProps) {
   const canOperate = user?.role === "admin" || user?.role === "moderator";
+  const categoryMap = useMemo(
+    () => new Map(categories.map((category) => [category.id, category])),
+    [categories],
+  );
+
   const [listingForm, setListingForm] = useState({
     title: "",
     description: "",
@@ -37,12 +47,16 @@ export function WorkspacePanels({
     image_urls: "",
   });
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
+  const [moderationNotes, setModerationNotes] = useState<Record<number, string>>({});
   const [listingBusy, setListingBusy] = useState(false);
   const [categoryBusy, setCategoryBusy] = useState(false);
+  const [moderationBusyId, setModerationBusyId] = useState<number | null>(null);
   const [listingError, setListingError] = useState("");
   const [categoryError, setCategoryError] = useState("");
+  const [moderationError, setModerationError] = useState("");
   const [listingSuccess, setListingSuccess] = useState("");
   const [categorySuccess, setCategorySuccess] = useState("");
+  const [moderationSuccess, setModerationSuccess] = useState("");
 
   function isValidHttpUrl(value: string) {
     try {
@@ -141,6 +155,39 @@ export function WorkspacePanels({
       setCategoryError(error instanceof Error ? error.message : "Не вдалося створити категорію.");
     } finally {
       setCategoryBusy(false);
+    }
+  }
+
+  async function moderateListing(listingId: number, approved: boolean) {
+    setModerationError("");
+    setModerationSuccess("");
+
+    const note = moderationNotes[listingId]?.trim() ?? "";
+    if (!approved && note.length < 5) {
+      setModerationError("Для відхилення вкажіть коротку причину щонайменше з 5 символів.");
+      return;
+    }
+
+    setModerationBusyId(listingId);
+    try {
+      await onModerateListing(listingId, {
+        approved,
+        rejection_reason: approved ? null : note,
+      });
+      setModerationNotes((current) => {
+        const next = { ...current };
+        delete next[listingId];
+        return next;
+      });
+      setModerationSuccess(
+        approved
+          ? "Оголошення схвалено і воно вже може з'являтися в каталозі."
+          : "Оголошення відхилено з поясненням для автора.",
+      );
+    } catch (error) {
+      setModerationError(error instanceof Error ? error.message : "Не вдалося завершити модерацію.");
+    } finally {
+      setModerationBusyId(null);
     }
   }
 
@@ -263,17 +310,82 @@ export function WorkspacePanels({
             {categoryError ? <p className="form-error">{categoryError}</p> : null}
             {categorySuccess ? <p className="form-success">{categorySuccess}</p> : null}
           </form>
-          <div className="workspace-list-preview">
-            <div>
-              <strong>Черга модерації</strong>
-              <ul>
-                {pendingListings.length ? (
-                  pendingListings.slice(0, 3).map((listing) => <li key={listing.id}>{listing.title}</li>)
-                ) : (
-                  <li>Наразі немає оголошень у черзі.</li>
-                )}
-              </ul>
+
+          <section className="moderation-board">
+            <div className="moderation-board__header">
+              <div>
+                <strong>Черга модерації</strong>
+                <p>Швидко переглядайте pending-оголошення, схвалюйте якісні публікації або повертайте їх автору з поясненням.</p>
+              </div>
+              <span className="status-pill">{pendingListings.length} у черзі</span>
             </div>
+
+            {moderationError ? <p className="form-error">{moderationError}</p> : null}
+            {moderationSuccess ? <p className="form-success">{moderationSuccess}</p> : null}
+
+            <div className="moderation-grid">
+              {pendingListings.length ? (
+                pendingListings.map((listing) => (
+                  <article className="moderation-card" key={listing.id}>
+                    <div className="moderation-card__top">
+                      <div>
+                        <span className="eyebrow">Pending review</span>
+                        <h4>{listing.title}</h4>
+                      </div>
+                      <span className="status-badge pending">Pending</span>
+                    </div>
+
+                    <div className="moderation-card__meta">
+                      <span>{categoryMap.get(listing.category_id)?.name ?? "Без категорії"}</span>
+                      <strong>${listing.price.toFixed(2)}</strong>
+                    </div>
+
+                    <p className="moderation-card__description">{listing.description}</p>
+
+                    <label className="moderation-card__label">
+                      Причина відхилення
+                      <textarea
+                        value={moderationNotes[listing.id] ?? ""}
+                        placeholder="Наприклад: потрібні чіткіші фото, уточніть стан товару або заповніть опис."
+                        onChange={(event) =>
+                          setModerationNotes((current) => ({
+                            ...current,
+                            [listing.id]: event.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+
+                    <div className="moderation-card__actions">
+                      <button
+                        className="ghost-button moderation-card__approve"
+                        disabled={moderationBusyId === listing.id}
+                        type="button"
+                        onClick={() => void moderateListing(listing.id, true)}
+                      >
+                        {moderationBusyId === listing.id ? "Обробляємо..." : "Схвалити"}
+                      </button>
+                      <button
+                        className="cta-button moderation-card__reject"
+                        disabled={moderationBusyId === listing.id}
+                        type="button"
+                        onClick={() => void moderateListing(listing.id, false)}
+                      >
+                        {moderationBusyId === listing.id ? "Обробляємо..." : "Відхилити"}
+                      </button>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="empty-card moderation-empty">
+                  <strong>Черга чиста</strong>
+                  <p>Наразі немає pending-оголошень. Нові публікації з'являться тут автоматично.</p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <div className="workspace-list-preview">
             <div>
               <strong>Останні повідомлення</strong>
               <ul>
@@ -282,6 +394,14 @@ export function WorkspacePanels({
                 ) : (
                   <li>Поки що повідомлень немає.</li>
                 )}
+              </ul>
+            </div>
+            <div>
+              <strong>Що перевіряти насамперед</strong>
+              <ul>
+                <li>Чи достатньо конкретний заголовок.</li>
+                <li>Чи опис дає покупцю повну картину.</li>
+                <li>Чи є адекватна ціна та коректна категорія.</li>
               </ul>
             </div>
           </div>
@@ -299,7 +419,7 @@ export function WorkspacePanels({
               <ListingCard
                 key={listing.id}
                 listing={listing}
-                category={categories.find((category) => category.id === listing.category_id)}
+                category={categoryMap.get(listing.category_id)}
               />
             ))
           ) : (

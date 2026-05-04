@@ -20,6 +20,10 @@ interface WorkspacePageProps {
     image_urls: string[];
   }) => Promise<void>;
   onCreateCategory: (payload: { name: string; description: string }) => Promise<void>;
+  onModerateListing: (
+    listing_id: number,
+    payload: { approved: boolean; rejection_reason?: string | null },
+  ) => Promise<void>;
 }
 
 export function WorkspacePage(props: WorkspacePageProps) {

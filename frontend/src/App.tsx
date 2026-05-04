@@ -131,6 +131,17 @@ export function App() {
     await refreshPrivateData(token);
   }
 
+  async function handleModerateListing(
+    listing_id: number,
+    payload: { approved: boolean; rejection_reason?: string | null },
+  ) {
+    if (!token) {
+      throw new Error("Login required");
+    }
+    await api.moderateListing(token, listing_id, payload);
+    await Promise.all([refreshPublicData(), refreshPrivateData(token)]);
+  }
+
   const isAuthenticated = useMemo(() => Boolean(token && user), [token, user]);
   const isErrorRoute = location.pathname.startsWith("/errors/");
 
@@ -151,6 +162,7 @@ export function App() {
                 onCreateCategory={handleCreateCategory}
                 onCreateListing={handleCreateListing}
                 onLogin={handleLogin}
+                onModerateListing={handleModerateListing}
                 onRegister={handleRegister}
                 pendingListings={pendingListings}
                 user={user}
