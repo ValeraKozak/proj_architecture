@@ -118,7 +118,9 @@ export function WorkspacePanels({
       setListingForm({ title: "", description: "", price: "", category_id: "", image_urls: "" });
       setListingSuccess("Оголошення створено та відправлено на модерацію.");
     } catch (error) {
-      setListingError(error instanceof Error ? error.message : "Не вдалося створити оголошення.");
+      setListingError(
+        error instanceof Error ? error.message : "Не вдалося створити оголошення.",
+      );
     } finally {
       setListingBusy(false);
     }
@@ -185,7 +187,9 @@ export function WorkspacePanels({
           : "Оголошення відхилено з поясненням для автора.",
       );
     } catch (error) {
-      setModerationError(error instanceof Error ? error.message : "Не вдалося завершити модерацію.");
+      setModerationError(
+        error instanceof Error ? error.message : "Не вдалося завершити модерацію.",
+      );
     } finally {
       setModerationBusyId(null);
     }
@@ -251,7 +255,7 @@ export function WorkspacePanels({
             Посилання на зображення
             <textarea
               value={listingForm.image_urls}
-              placeholder={"Необов'язково. Вкажіть повні http/https URL, по одному в рядку."}
+              placeholder="Необов'язково. Вкажіть повні http/https URL, по одному в рядку."
               onChange={(event) =>
                 setListingForm((current) => ({ ...current, image_urls: event.target.value }))
               }
@@ -315,7 +319,10 @@ export function WorkspacePanels({
             <div className="moderation-board__header">
               <div>
                 <strong>Черга модерації</strong>
-                <p>Швидко переглядайте pending-оголошення, схвалюйте якісні публікації або повертайте їх автору з поясненням.</p>
+                <p>
+                  Швидко переглядайте pending-оголошення, схвалюйте якісні публікації або
+                  повертайте їх автору з поясненням.
+                </p>
               </div>
               <span className="status-pill">{pendingListings.length} у черзі</span>
             </div>
@@ -379,7 +386,7 @@ export function WorkspacePanels({
               ) : (
                 <div className="empty-card moderation-empty">
                   <strong>Черга чиста</strong>
-                  <p>Наразі немає pending-оголошень. Нові публікації з'являться тут автоматично.</p>
+                  <p>Наразі немає pending-оголошень. Нові публікації з'являються тут автоматично.</p>
                 </div>
               )}
             </div>
