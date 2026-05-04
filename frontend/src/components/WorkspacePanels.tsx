@@ -44,6 +44,15 @@ export function WorkspacePanels({
   const [listingSuccess, setListingSuccess] = useState("");
   const [categorySuccess, setCategorySuccess] = useState("");
 
+  function isValidHttpUrl(value: string) {
+    try {
+      const url = new URL(value);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
   async function submitListing(event: FormEvent) {
     event.preventDefault();
     setListingError("");
@@ -53,8 +62,32 @@ export function WorkspacePanels({
       setListingError("Увійдіть у систему, щоб створити оголошення.");
       return;
     }
+    if (listingForm.title.trim().length < 5) {
+      setListingError("Назва оголошення має містити щонайменше 5 символів.");
+      return;
+    }
+    if (listingForm.description.trim().length < 20) {
+      setListingError("Опис оголошення має містити щонайменше 20 символів.");
+      return;
+    }
+    if (!listingForm.price || Number(listingForm.price) <= 0) {
+      setListingError("Вкажіть коректну ціну, більшу за 0.");
+      return;
+    }
     if (!listingForm.category_id) {
       setListingError("Оберіть категорію для оголошення.");
+      return;
+    }
+
+    const imageUrls = listingForm.image_urls
+      .split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    if (imageUrls.some((value) => !isValidHttpUrl(value))) {
+      setListingError(
+        "У полі зображень можна вказувати лише повні посилання формату http/https, по одному в рядку.",
+      );
       return;
     }
 
@@ -66,17 +99,12 @@ export function WorkspacePanels({
         description: listingForm.description.trim(),
         price: Number(listingForm.price),
         category_id: Number(listingForm.category_id),
-        image_urls: listingForm.image_urls
-          .split("\n")
-          .map((value) => value.trim())
-          .filter(Boolean),
+        image_urls: imageUrls,
       });
       setListingForm({ title: "", description: "", price: "", category_id: "", image_urls: "" });
       setListingSuccess("Оголошення створено та відправлено на модерацію.");
     } catch (error) {
-      setListingError(
-        error instanceof Error ? error.message : "Не вдалося створити оголошення.",
-      );
+      setListingError(error instanceof Error ? error.message : "Не вдалося створити оголошення.");
     } finally {
       setListingBusy(false);
     }
@@ -87,8 +115,16 @@ export function WorkspacePanels({
     setCategoryError("");
     setCategorySuccess("");
 
-    if (!categoryForm.name.trim() || !categoryForm.description.trim()) {
-      setCategoryError("Заповніть назву й опис категорії.");
+    if (!canOperate) {
+      setCategoryError("Створювати категорії можуть лише адміністратор або модератор.");
+      return;
+    }
+    if (categoryForm.name.trim().length < 2) {
+      setCategoryError("Назва категорії має містити щонайменше 2 символи.");
+      return;
+    }
+    if (categoryForm.description.trim().length < 5) {
+      setCategoryError("Опис категорії має містити щонайменше 5 символів.");
       return;
     }
 
@@ -102,9 +138,7 @@ export function WorkspacePanels({
       setCategoryForm({ name: "", description: "" });
       setCategorySuccess("Категорію успішно створено.");
     } catch (error) {
-      setCategoryError(
-        error instanceof Error ? error.message : "Не вдалося створити категорію.",
-      );
+      setCategoryError(error instanceof Error ? error.message : "Не вдалося створити категорію.");
     } finally {
       setCategoryBusy(false);
     }
@@ -170,9 +204,7 @@ export function WorkspacePanels({
             Посилання на зображення
             <textarea
               value={listingForm.image_urls}
-              placeholder={
-                "https://images.example.com/cover.jpg\nhttps://images.example.com/detail.jpg"
-              }
+              placeholder={"Необов'язково. Вкажіть повні http/https URL, по одному в рядку."}
               onChange={(event) =>
                 setListingForm((current) => ({ ...current, image_urls: event.target.value }))
               }
@@ -273,7 +305,7 @@ export function WorkspacePanels({
           ) : (
             <div className="empty-card">
               <strong>Поки що немає жодного оголошення</strong>
-              <p>Створіть першу публікацію у верхній формі, і вона одразу зʼявиться тут.</p>
+              <p>Створіть першу публікацію у верхній формі, і вона одразу з'явиться тут.</p>
             </div>
           )}
         </div>
