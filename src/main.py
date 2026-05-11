@@ -2,11 +2,13 @@ import logging
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-from src.controllers import auth, categories, listings, messages, moderation, users
+from src.controllers import auth, categories, listings, messages, moderation, uploads, users
 from src.core.config import get_settings
 from src.db.database import initialize_database
 
@@ -21,6 +23,7 @@ logger = logging.getLogger("bulletin_board")
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
     initialize_database()
     yield
 
@@ -36,6 +39,7 @@ def create_app() -> FastAPI:
         contact={"name": "Course Project Maintainer", "email": "maintainer@example.com"},
         lifespan=lifespan,
     )
+    Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
     allowed_origins = [
         origin.strip()
         for origin in settings.frontend_origins.split(",")
@@ -68,7 +72,13 @@ def create_app() -> FastAPI:
     application.include_router(listings.router)
     application.include_router(messages.router)
     application.include_router(moderation.router)
+    application.include_router(uploads.router)
     application.include_router(users.router)
+    application.mount(
+        settings.uploads_url_prefix,
+        StaticFiles(directory=settings.upload_dir),
+        name="uploads",
+    )
     return application
 
 

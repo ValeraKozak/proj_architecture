@@ -7,6 +7,7 @@ import type { Category, Health, Listing, Message, User } from "./lib/types";
 import { CatalogPage } from "./pages/CatalogPage";
 import { ErrorPage } from "./pages/ErrorPage";
 import { HomePage } from "./pages/HomePage";
+import { ListingDetailPage } from "./pages/ListingDetailPage";
 import { WorkspacePage } from "./pages/WorkspacePage";
 
 const TOKEN_KEY = "bulletin-board-token";
@@ -122,6 +123,13 @@ export function App() {
     await Promise.all([refreshPublicData(), refreshPrivateData(token)]);
   }
 
+  async function handleUploadImages(files: File[]) {
+    if (!token) {
+      throw new Error("Login required");
+    }
+    return api.uploadImages(token, files);
+  }
+
   async function handleCreateCategory(payload: { name: string; description: string }) {
     if (!token) {
       throw new Error("Login required");
@@ -142,6 +150,18 @@ export function App() {
     await Promise.all([refreshPublicData(), refreshPrivateData(token)]);
   }
 
+  async function handleSendMessage(payload: {
+    listing_id: number;
+    recipient_id: number;
+    body: string;
+  }) {
+    if (!token) {
+      throw new Error("Login required");
+    }
+    await api.sendMessage(token, payload);
+    await refreshPrivateData(token);
+  }
+
   const isAuthenticated = useMemo(() => Boolean(token && user), [token, user]);
   const isErrorRoute = location.pathname.startsWith("/errors/");
 
@@ -152,6 +172,19 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomePage health={health} categories={categories} listings={listings} />} />
           <Route path="/catalog" element={<CatalogPage categories={categories} />} />
+          <Route
+            path="/catalog/:listingId"
+            element={
+              <ListingDetailPage
+                categories={categories}
+                listings={listings}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                token={token}
+                user={user}
+              />
+            }
+          />
           <Route
             path="/workspace"
             element={

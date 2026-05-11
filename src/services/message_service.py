@@ -41,6 +41,7 @@ class MessageService:
         )
         self.messages.add(message)
         self.db.commit()
+        self._enrich_message(message)
         logger.info(
             "Message sent message_id=%s listing_id=%s sender_id=%s recipient_id=%s",
             message.id,
@@ -51,13 +52,13 @@ class MessageService:
         return message
 
     def list_user_messages(self, user_id: int) -> list[Message]:
-        return self.messages.list_for_user(user_id)
+        return self._enrich_messages(self.messages.list_for_user(user_id))
 
     def get_user_message(self, message_id: int, user_id: int) -> Message:
         message = self.messages.get_for_user(message_id, user_id)
         if message is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
-        return message
+        return self._enrich_message(message)
 
     def delete_user_message(self, message_id: int, user_id: int) -> DeleteResponseDTO:
         message = self.get_user_message(message_id, user_id)
@@ -65,3 +66,15 @@ class MessageService:
         self.db.commit()
         logger.info("Message deleted message_id=%s user_id=%s", message_id, user_id)
         return DeleteResponseDTO(message="Message deleted")
+
+    def _enrich_message(self, message: Message) -> Message:
+        if message.sender_id is not None:
+            sender = self.db.get(User, message.sender_id)
+            message.sender_name = sender.full_name if sender is not None else None
+        if message.recipient_id is not None:
+            recipient = self.db.get(User, message.recipient_id)
+            message.recipient_name = recipient.full_name if recipient is not None else None
+        return message
+
+    def _enrich_messages(self, messages: list[Message]) -> list[Message]:
+        return [self._enrich_message(message) for message in messages]

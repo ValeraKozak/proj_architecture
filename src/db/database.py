@@ -164,6 +164,9 @@ def serialize(entity: Any) -> dict[str, Any]:
         raise TypeError(f"Unsupported entity type: {type(entity)!r}")
     payload = asdict(entity)
     payload.pop("images", None)
+    payload.pop("owner_name", None)
+    payload.pop("sender_name", None)
+    payload.pop("recipient_name", None)
     payload["_id"] = payload["id"]
     if isinstance(entity, User):
         payload["role"] = entity.role.value

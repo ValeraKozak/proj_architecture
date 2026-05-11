@@ -86,6 +86,7 @@ class ListingReadDTO(BaseModel):
     status: ListingStatus
     rejection_reason: str | None
     owner_id: int
+    owner_name: str | None = None
     category_id: int
     created_at: datetime | None = None
     image_urls: list[str] = Field(default_factory=list)
@@ -108,11 +109,21 @@ class MessageReadDTO(BaseModel):
     id: int
     listing_id: int
     sender_id: int
+    sender_name: str | None = None
     recipient_id: int
+    recipient_name: str | None = None
     body: str
     created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class UploadImageReadDTO(BaseModel):
+    url: str
+
+
+class UploadImageBatchDTO(BaseModel):
+    files: list[UploadImageReadDTO]
 
 
 class DeleteResponseDTO(BaseModel):

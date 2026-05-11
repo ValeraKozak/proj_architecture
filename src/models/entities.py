@@ -56,6 +56,7 @@ class Listing:
     status: ListingStatus = ListingStatus.DRAFT
     rejection_reason: str | None = None
     owner_id: int | None = None
+    owner_name: str | None = None
     category_id: int | None = None
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
@@ -71,6 +72,8 @@ class Message:
     id: int | None = None
     listing_id: int | None = None
     sender_id: int | None = None
+    sender_name: str | None = None
     recipient_id: int | None = None
+    recipient_name: str | None = None
     body: str = ""
     created_at: datetime = field(default_factory=utc_now)

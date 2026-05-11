@@ -15,6 +15,7 @@ export interface Listing {
   status: ListingStatus;
   rejection_reason?: string | null;
   owner_id: number;
+  owner_name?: string | null;
   category_id: number;
   created_at?: string | null;
   image_urls: string[];
@@ -32,9 +33,15 @@ export interface Message {
   id: number;
   listing_id: number;
   sender_id: number;
+  sender_name?: string | null;
   recipient_id: number;
+  recipient_name?: string | null;
   body: string;
   created_at?: string | null;
+}
+
+export interface UploadBatch {
+  files: Array<{ url: string }>;
 }
 
 export interface Health {

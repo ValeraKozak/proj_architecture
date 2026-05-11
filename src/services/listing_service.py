@@ -36,6 +36,7 @@ class ListingService:
         self.listings.add(listing)
         self.db.commit()
         self.db.refresh(listing)
+        self._enrich_listing(listing)
         logger.info("Listing created listing_id=%s owner_id=%s", listing.id, owner.id)
         return listing
 
@@ -51,6 +52,7 @@ class ListingService:
         listing.rejection_reason = None
         self.db.commit()
         self.db.refresh(listing)
+        self._enrich_listing(listing)
         logger.info("Listing updated listing_id=%s owner_id=%s", listing.id, owner.id)
         return listing
 
@@ -69,7 +71,7 @@ class ListingService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="min_price cannot be greater than max_price",
             )
-        return self.listings.list_visible(
+        listings = self.listings.list_visible(
             query=query,
             category_id=category_id,
             min_price=min_price,
@@ -77,24 +79,27 @@ class ListingService:
             sort_by=sort_by,
             sort_order=sort_order,
         )
+        return self._enrich_listings(listings)
 
     def get_by_id(self, listing_id: int, current_user: User | None = None) -> Listing:
         listing = self.db.get(Listing, listing_id)
         if listing is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
         if listing.status == ListingStatus.APPROVED:
+            self._enrich_listing(listing)
             return listing
         if current_user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
         if current_user.id == listing.owner_id or current_user.role in {Role.ADMIN, Role.MODERATOR}:
+            self._enrich_listing(listing)
             return listing
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
 
     def get_owned(self, owner: User) -> list[Listing]:
-        return self.listings.list_owned(owner.id)
+        return self._enrich_listings(self.listings.list_owned(owner.id))
 
     def get_for_moderation(self) -> list[Listing]:
-        return self.listings.list_for_moderation()
+        return self._enrich_listings(self.listings.list_for_moderation())
 
     def delete(self, listing_id: int, owner: User) -> DeleteResponseDTO:
         listing = self._get_owned_listing(listing_id, owner.id)
@@ -117,3 +122,12 @@ class ListingService:
             ListingImage(url=str(image_url), position=index)
             for index, image_url in enumerate(image_urls)
         ]
+
+    def _enrich_listing(self, listing: Listing) -> Listing:
+        if listing.owner_id is not None:
+            owner = self.db.get(User, listing.owner_id)
+            listing.owner_name = owner.full_name if owner is not None else None
+        return listing
+
+    def _enrich_listings(self, listings: list[Listing]) -> list[Listing]:
+        return [self._enrich_listing(listing) for listing in listings]

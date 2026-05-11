@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+
+import { resolveAssetUrl } from "../lib/api";
 import type { Category, Listing } from "../lib/types";
 
 interface ListingCardProps {
@@ -11,38 +14,45 @@ export function ListingCard({ listing, category }: ListingCardProps) {
       ? `${listing.description.slice(0, 117)}...`
       : listing.description;
   const statusLabels: Record<Listing["status"], string> = {
-    approved: "схвалено",
-    pending: "модерація",
-    rejected: "відхилено",
-    draft: "чернетка",
-    archived: "архів",
+    approved: "Схвалено",
+    pending: "Модерація",
+    rejected: "Відхилено",
+    draft: "Чернетка",
+    archived: "Архів",
   };
+  const primaryImage = listing.image_urls[0];
 
   return (
     <article className="listing-card">
-      <div className="listing-card__visual">
-        <div className="listing-card__placeholder">
-          <span>{category?.name ?? "Listing"}</span>
-          <strong>{listing.title}</strong>
+      <Link className="listing-card__link-shell" to={`/catalog/${listing.id}`}>
+        <div className="listing-card__visual">
+          {primaryImage ? (
+            <img src={resolveAssetUrl(primaryImage)} alt={listing.title} />
+          ) : (
+            <div className="listing-card__placeholder">
+              <span>{category?.name ?? "Listing"}</span>
+              <strong>{listing.title}</strong>
+            </div>
+          )}
         </div>
-      </div>
-      <div className="listing-card__meta">
-        <span>{category?.name ?? "Uncategorized"}</span>
-        <span className={`status-badge ${listing.status}`}>{statusLabels[listing.status]}</span>
-      </div>
-      <h4>{listing.title}</h4>
-      <p>{descriptionPreview}</p>
-      {listing.image_urls.length > 1 ? (
-        <div className="listing-card__gallery-count">
-          +{listing.image_urls.length - 1} додаткових фото
+        <div className="listing-card__meta">
+          <span>{category?.name ?? "Uncategorized"}</span>
+          <span className={`status-badge ${listing.status}`}>{statusLabels[listing.status]}</span>
         </div>
-      ) : null}
-      <div className="listing-card__footer">
-        <strong>${listing.price.toFixed(2)}</strong>
-        <small>
-          {listing.created_at ? new Date(listing.created_at).toLocaleDateString() : "Чернетка"}
-        </small>
-      </div>
+        <h4>{listing.title}</h4>
+        <p>{descriptionPreview}</p>
+        {listing.image_urls.length > 1 ? (
+          <div className="listing-card__gallery-count">
+            +{listing.image_urls.length - 1} додаткових фото
+          </div>
+        ) : null}
+        <div className="listing-card__footer">
+          <strong>${listing.price.toFixed(2)}</strong>
+          <small>
+            {listing.created_at ? new Date(listing.created_at).toLocaleDateString() : "Чернетка"}
+          </small>
+        </div>
+      </Link>
     </article>
   );
 }
