@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipInstall
+    [switch]$SkipInstall,
+    [switch]$ForceInstall
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,6 +13,8 @@ $frontendModulesDir = Join-Path $frontendDir "node_modules"
 $venvRoot = Join-Path $env:LOCALAPPDATA "proj_architecture_l3_venv"
 $pythonExe = Join-Path $venvRoot "Scripts\python.exe"
 $activateScript = Join-Path $venvRoot "Scripts\Activate.ps1"
+$backendMarker = Join-Path $venvRoot ".backend-deps-installed"
+$frontendMarker = Join-Path $frontendDir ".frontend-deps-installed"
 
 if (-not (Test-Path $pythonExe)) {
     Write-Host "Creating Python virtual environment..." -ForegroundColor Cyan
@@ -39,6 +42,15 @@ catch {
     throw "pip is not available in the virtual environment at $venvRoot"
 }
 
+$backendInstalled = $false
+try {
+    & $pythonExe -m pip show bulletin-board-platform | Out-Null
+    $backendInstalled = $true
+}
+catch {
+    $backendInstalled = $false
+}
+
 if (-not (Test-Path (Join-Path $frontendDir "package.json"))) {
     throw "Frontend package.json not found."
 }
@@ -52,22 +64,32 @@ if (-not (Test-Path $envFile)) {
     Copy-Item $envExampleFile $envFile
 }
 
-if (-not $SkipInstall) {
+if ($backendInstalled -and -not (Test-Path $backendMarker)) {
+    Set-Content -Path $backendMarker -Value "ok"
+}
+
+if ((Test-Path $frontendModulesDir) -and -not (Test-Path $frontendMarker)) {
+    Set-Content -Path $frontendMarker -Value "ok"
+}
+
+if (-not $SkipInstall -and ((-not $backendInstalled) -or (-not (Test-Path $backendMarker)) -or $ForceInstall)) {
     Write-Host "Installing backend dependencies..." -ForegroundColor Cyan
     Push-Location $projectRoot
     try {
         & $pythonExe -m pip install -e ".[dev]"
+        Set-Content -Path $backendMarker -Value "ok"
     }
     finally {
         Pop-Location
     }
 }
 
-if (-not $SkipInstall -and -not (Test-Path $frontendModulesDir)) {
+if (-not $SkipInstall -and ((-not (Test-Path $frontendModulesDir)) -or (-not (Test-Path $frontendMarker)) -or $ForceInstall)) {
     Write-Host "Installing frontend dependencies..." -ForegroundColor Cyan
     Push-Location $frontendDir
     try {
         npm install
+        Set-Content -Path $frontendMarker -Value "ok"
     }
     finally {
         Pop-Location
