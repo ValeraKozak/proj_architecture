@@ -6,8 +6,10 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from src.application.common.errors import ApplicationError
 from src.controllers import auth, categories, listings, messages, moderation, uploads, users
 from src.core.config import get_settings
 from src.db.database import initialize_database
@@ -52,6 +54,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @application.exception_handler(ApplicationError)
+    async def handle_application_error(_: Request, exc: ApplicationError) -> JSONResponse:
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
     @application.middleware("http")
     async def log_requests(request: Request, call_next):

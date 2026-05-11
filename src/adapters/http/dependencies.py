@@ -1,0 +1,67 @@
+from fastapi import Depends
+
+from src.adapters.persistence.mongodb.repositories import (
+    MongoCategoryRepository,
+    MongoListingRepository,
+    MongoMessageRepository,
+    MongoUnitOfWork,
+    MongoUserRepository,
+)
+from src.application.services import (
+    AuthApplicationService,
+    CategoryApplicationService,
+    ListingApplicationService,
+    MessageApplicationService,
+    ModerationApplicationService,
+    UserApplicationService,
+)
+from src.core.security import PasswordManagerAdapter, TokenServiceAdapter
+from src.db.database import DatabaseSession, get_db
+
+
+def get_auth_service(db: DatabaseSession = Depends(get_db)) -> AuthApplicationService:
+    return AuthApplicationService(
+        users=MongoUserRepository(db),
+        uow=MongoUnitOfWork(db),
+        password_manager=PasswordManagerAdapter(),
+        token_service=TokenServiceAdapter(),
+    )
+
+
+def get_category_service(db: DatabaseSession = Depends(get_db)) -> CategoryApplicationService:
+    return CategoryApplicationService(
+        categories=MongoCategoryRepository(db),
+        uow=MongoUnitOfWork(db),
+    )
+
+
+def get_listing_service(db: DatabaseSession = Depends(get_db)) -> ListingApplicationService:
+    return ListingApplicationService(
+        listings=MongoListingRepository(db),
+        categories=MongoCategoryRepository(db),
+        users=MongoUserRepository(db),
+        uow=MongoUnitOfWork(db),
+    )
+
+
+def get_message_service(db: DatabaseSession = Depends(get_db)) -> MessageApplicationService:
+    return MessageApplicationService(
+        messages=MongoMessageRepository(db),
+        listings=MongoListingRepository(db),
+        users=MongoUserRepository(db),
+        uow=MongoUnitOfWork(db),
+    )
+
+
+def get_moderation_service(db: DatabaseSession = Depends(get_db)) -> ModerationApplicationService:
+    return ModerationApplicationService(
+        listings=MongoListingRepository(db),
+        uow=MongoUnitOfWork(db),
+    )
+
+
+def get_user_service(db: DatabaseSession = Depends(get_db)) -> UserApplicationService:
+    return UserApplicationService(
+        users=MongoUserRepository(db),
+        uow=MongoUnitOfWork(db),
+    )

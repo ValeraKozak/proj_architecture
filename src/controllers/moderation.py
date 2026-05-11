@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 
+from src.adapters.http.dependencies import get_moderation_service
+from src.application.services import ModerationApplicationService
 from src.core.security import require_role
-from src.db.database import DatabaseSession, get_db
 from src.dto.schemas import ListingReadDTO, ModerationDecisionDTO
 from src.models.entities import Role, User
-from src.services.moderation_service import ModerationService
 
 router = APIRouter(prefix="/moderation", tags=["moderation"])
 
@@ -13,7 +13,11 @@ router = APIRouter(prefix="/moderation", tags=["moderation"])
 def review_listing(
     listing_id: int,
     payload: ModerationDecisionDTO,
-    db: DatabaseSession = Depends(get_db),
+    service: ModerationApplicationService = Depends(get_moderation_service),
     _: User = Depends(require_role(Role.ADMIN, Role.MODERATOR)),
 ) -> ListingReadDTO:
-    return ModerationService(db).review(listing_id, payload)
+    return service.review(
+        listing_id,
+        approved=payload.approved,
+        rejection_reason=payload.rejection_reason,
+    )

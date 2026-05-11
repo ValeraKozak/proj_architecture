@@ -7,10 +7,11 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
+from src.adapters.persistence.mongodb.repositories import MongoUserRepository
+from src.application.ports.security import PasswordManagerPort, TokenServicePort
 from src.core.config import get_settings
 from src.db.database import DatabaseSession, get_db
 from src.models.entities import Role, User
-from src.repositories.user_repository import UserRepository
 
 security = HTTPBearer()
 
@@ -39,6 +40,19 @@ def create_access_token(subject: str) -> str:
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
+class PasswordManagerAdapter(PasswordManagerPort):
+    def hash_password(self, password: str) -> str:
+        return hash_password(password)
+
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        return verify_password(plain_password, hashed_password)
+
+
+class TokenServiceAdapter(TokenServicePort):
+    def create_access_token(self, subject: str) -> str:
+        return create_access_token(subject)
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: DatabaseSession = Depends(get_db),
@@ -53,7 +67,7 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token",
         ) from exc
-    user = UserRepository(db).get_by_email(email)
+    user = MongoUserRepository(db).get_by_email(email)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user

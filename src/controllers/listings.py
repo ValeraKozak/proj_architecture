@@ -3,11 +3,12 @@ from typing import Literal
 from fastapi import APIRouter, Depends, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from src.adapters.http.dependencies import get_listing_service
+from src.application.services import ListingApplicationService
 from src.core.security import get_current_user, require_role
-from src.db.database import DatabaseSession, get_db
+from src.db.database import get_db
 from src.dto.schemas import DeleteResponseDTO, ListingCreateDTO, ListingReadDTO, ListingUpdateDTO
 from src.models.entities import Role, User
-from src.services.listing_service import ListingService
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 optional_bearer = HTTPBearer(auto_error=False)
@@ -16,25 +17,40 @@ optional_bearer = HTTPBearer(auto_error=False)
 @router.post("", response_model=ListingReadDTO, status_code=201)
 def create_listing(
     payload: ListingCreateDTO,
-    db: DatabaseSession = Depends(get_db),
+    service: ListingApplicationService = Depends(get_listing_service),
     current_user: User = Depends(get_current_user),
 ) -> ListingReadDTO:
-    return ListingService(db).create(payload, current_user)
+    return service.create(
+        title=payload.title,
+        description=payload.description,
+        price=payload.price,
+        category_id=payload.category_id,
+        image_urls=[str(url) for url in payload.image_urls],
+        owner=current_user,
+    )
 
 
 @router.put("/{listing_id}", response_model=ListingReadDTO)
 def update_listing(
     listing_id: int,
     payload: ListingUpdateDTO,
-    db: DatabaseSession = Depends(get_db),
+    service: ListingApplicationService = Depends(get_listing_service),
     current_user: User = Depends(get_current_user),
 ) -> ListingReadDTO:
-    return ListingService(db).update(listing_id, payload, current_user)
+    return service.update(
+        listing_id,
+        title=payload.title,
+        description=payload.description,
+        price=payload.price,
+        category_id=payload.category_id,
+        image_urls=None if payload.image_urls is None else [str(url) for url in payload.image_urls],
+        owner=current_user,
+    )
 
 
 @router.get("", response_model=list[ListingReadDTO])
 def public_listings(
-    db: DatabaseSession = Depends(get_db),
+    service: ListingApplicationService = Depends(get_listing_service),
     query: str | None = Query(default=None, min_length=1, max_length=100),
     category_id: int | None = Query(default=None, gt=0),
     min_price: float | None = Query(default=None, gt=0),
@@ -42,7 +58,7 @@ def public_listings(
     sort_by: Literal["created_at", "price"] = Query(default="created_at"),
     sort_order: Literal["asc", "desc"] = Query(default="desc"),
 ) -> list[ListingReadDTO]:
-    return ListingService(db).get_public(
+    return service.get_public(
         query=query,
         category_id=category_id,
         min_price=min_price,
@@ -54,36 +70,37 @@ def public_listings(
 
 @router.get("/me/owned", response_model=list[ListingReadDTO])
 def my_listings(
-    db: DatabaseSession = Depends(get_db),
+    service: ListingApplicationService = Depends(get_listing_service),
     current_user: User = Depends(get_current_user),
 ) -> list[ListingReadDTO]:
-    return ListingService(db).get_owned(current_user)
+    return service.get_owned(current_user)
 
 
 @router.get("/moderation/pending", response_model=list[ListingReadDTO])
 def moderation_queue(
-    db: DatabaseSession = Depends(get_db),
+    service: ListingApplicationService = Depends(get_listing_service),
     _: User = Depends(require_role(Role.ADMIN, Role.MODERATOR)),
 ) -> list[ListingReadDTO]:
-    return ListingService(db).get_for_moderation()
+    return service.get_for_moderation()
 
 
 @router.get("/{listing_id}", response_model=ListingReadDTO)
 def get_listing(
     listing_id: int,
-    db: DatabaseSession = Depends(get_db),
+    service: ListingApplicationService = Depends(get_listing_service),
     credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
+    db=Depends(get_db),
 ) -> ListingReadDTO:
     current_user = None
     if credentials is not None:
         current_user = get_current_user(credentials=credentials, db=db)
-    return ListingService(db).get_by_id(listing_id, current_user)
+    return service.get_by_id(listing_id, current_user)
 
 
 @router.delete("/{listing_id}", response_model=DeleteResponseDTO)
 def delete_listing(
     listing_id: int,
-    db: DatabaseSession = Depends(get_db),
+    service: ListingApplicationService = Depends(get_listing_service),
     current_user: User = Depends(get_current_user),
 ) -> DeleteResponseDTO:
-    return ListingService(db).delete(listing_id, current_user)
+    return DeleteResponseDTO(**service.delete(listing_id, current_user))

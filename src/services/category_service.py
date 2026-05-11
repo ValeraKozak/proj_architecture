@@ -1,62 +1,46 @@
-import logging
-
-from fastapi import HTTPException, status
-
+from src.adapters.persistence.mongodb.repositories import MongoCategoryRepository, MongoUnitOfWork
+from src.application.common.errors import ApplicationError
+from src.application.services.categories import CategoryApplicationService
 from src.db.database import DatabaseSession
 from src.dto.schemas import CategoryCreateDTO, CategoryUpdateDTO
 from src.models.entities import Category
-from src.repositories.category_repository import CategoryRepository
-
-logger = logging.getLogger(__name__)
+from src.services._legacy import translate_application_error
 
 
 class CategoryService:
     def __init__(self, db: DatabaseSession) -> None:
-        self.db = db
-        self.categories = CategoryRepository(db)
+        self.service = CategoryApplicationService(
+            categories=MongoCategoryRepository(db),
+            uow=MongoUnitOfWork(db),
+        )
 
     def create(self, payload: CategoryCreateDTO) -> Category:
-        if self.categories.get_by_name(payload.name):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Category already exists",
-            )
-        category = Category(name=payload.name.strip(), description=payload.description.strip())
-        self.categories.add(category)
-        self.db.commit()
-        return category
+        try:
+            return self.service.create(name=payload.name, description=payload.description)
+        except ApplicationError as exc:
+            raise translate_application_error(exc) from exc
 
     def list_all(self) -> list[Category]:
-        return self.categories.list_all()
+        return self.service.list_all()
 
     def get_by_id(self, category_id: int) -> Category:
-        category = self.categories.get(category_id)
-        if category is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
-        return category
+        try:
+            return self.service.get_by_id(category_id)
+        except ApplicationError as exc:
+            raise translate_application_error(exc) from exc
 
     def update(self, category_id: int, payload: CategoryUpdateDTO) -> Category:
-        category = self.get_by_id(category_id)
-        existing = self.categories.get_by_name(payload.name.strip())
-        if existing is not None and existing.id != category_id:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Category already exists",
+        try:
+            return self.service.update(
+                category_id,
+                name=payload.name,
+                description=payload.description,
             )
-        category.name = payload.name.strip()
-        category.description = payload.description.strip()
-        self.db.commit()
-        self.db.refresh(category)
-        logger.info("Category updated category_id=%s", category.id)
-        return category
+        except ApplicationError as exc:
+            raise translate_application_error(exc) from exc
 
     def delete(self, category_id: int) -> None:
-        category = self.get_by_id(category_id)
-        if self.categories.has_related_listings(category_id):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Cannot delete category with listings",
-            )
-        self.categories.delete(category)
-        self.db.commit()
-        logger.info("Category deleted category_id=%s", category_id)
+        try:
+            self.service.delete(category_id)
+        except ApplicationError as exc:
+            raise translate_application_error(exc) from exc
