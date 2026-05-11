@@ -11,7 +11,7 @@
 - пошук, фільтри й сортування каталогу
 - OpenAPI / Swagger
 - unit та integration тести
-- Docker, CI/CD, production frontend через `nginx`
+- CI/CD
 
 ## Технологічний стек
 - Python 3.11
@@ -19,7 +19,6 @@
 - MongoDB
 - PyMongo
 - PyTest + mongomock
-- Docker
 - GitHub Actions
 
 ## Структура
@@ -69,18 +68,6 @@ npm run dev
 ```powershell
 .\run.ps1
 ```
-
-## Docker
-```powershell
-Copy-Item .env.example .env
-docker compose up --build
-```
-
-Контейнери:
-- API: `http://127.0.0.1:8000`
-- Swagger: `http://127.0.0.1:8000/docs`
-- Frontend: `http://127.0.0.1:5173`
-- MongoDB: `mongodb://localhost:27017`
 
 ## Тести
 ```powershell

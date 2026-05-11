@@ -5,23 +5,65 @@ param(
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$pythonExe = Join-Path $projectRoot ".venv\Scripts\python.exe"
 $frontendDir = Join-Path $projectRoot "frontend"
-$activateScript = Join-Path $projectRoot ".venv\Scripts\Activate.ps1"
+$envFile = Join-Path $projectRoot ".env"
+$envExampleFile = Join-Path $projectRoot ".env.example"
+$frontendModulesDir = Join-Path $frontendDir "node_modules"
+$venvRoot = Join-Path $env:LOCALAPPDATA "proj_architecture_l3_venv"
+$pythonExe = Join-Path $venvRoot "Scripts\python.exe"
+$activateScript = Join-Path $venvRoot "Scripts\Activate.ps1"
 
 if (-not (Test-Path $pythonExe)) {
-    throw "Python virtual environment not found at .venv. Create it first with: py -m venv .venv"
+    Write-Host "Creating Python virtual environment..." -ForegroundColor Cyan
+    if (-not (Test-Path $venvRoot)) {
+        New-Item -ItemType Directory -Path $venvRoot -Force | Out-Null
+    }
+
+    Push-Location $venvRoot
+    try {
+        py -3.14 -m venv $venvRoot
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 if (-not (Test-Path $activateScript)) {
-    throw "Activation script not found at .venv\Scripts\Activate.ps1"
+    throw "Activation script not found at $activateScript"
+}
+
+try {
+    & $pythonExe -m pip --version | Out-Null
+}
+catch {
+    throw "pip is not available in the virtual environment at $venvRoot"
 }
 
 if (-not (Test-Path (Join-Path $frontendDir "package.json"))) {
     throw "Frontend package.json not found."
 }
 
-if (-not $SkipInstall -and -not (Test-Path (Join-Path $frontendDir "node_modules"))) {
+if (-not (Test-Path $envFile)) {
+    if (-not (Test-Path $envExampleFile)) {
+        throw ".env.example not found. Cannot create local environment file."
+    }
+
+    Write-Host "Creating .env from .env.example..." -ForegroundColor Cyan
+    Copy-Item $envExampleFile $envFile
+}
+
+if (-not $SkipInstall) {
+    Write-Host "Installing backend dependencies..." -ForegroundColor Cyan
+    Push-Location $projectRoot
+    try {
+        & $pythonExe -m pip install -e ".[dev]"
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+if (-not $SkipInstall -and -not (Test-Path $frontendModulesDir)) {
     Write-Host "Installing frontend dependencies..." -ForegroundColor Cyan
     Push-Location $frontendDir
     try {

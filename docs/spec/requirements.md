@@ -14,12 +14,10 @@
 - REST API через FastAPI
 - безпечна JWT-автентифікація
 - тести unit + integration
-- контейнеризація
 - CI/CD
 
 ## Технічний стек
 - Python
 - FastAPI
 - MongoDB
-- Docker
 - GitHub Actions
