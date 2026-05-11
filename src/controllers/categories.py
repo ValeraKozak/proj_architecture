@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
 from src.adapters.http.dependencies import get_category_service
+from src.adapters.http.security import require_role
 from src.application.services import CategoryApplicationService
-from src.core.security import require_role
 from src.dto.schemas import CategoryCreateDTO, CategoryReadDTO, CategoryUpdateDTO, DeleteResponseDTO
 from src.models.entities import Role, User
 

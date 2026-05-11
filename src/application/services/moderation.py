@@ -1,6 +1,6 @@
 import logging
 
-from src.application.common.errors import ApplicationError
+from src.application.common.errors import ConflictError, NotFoundError, ValidationError
 from src.application.ports.repositories import ListingRepositoryPort, UnitOfWorkPort
 from src.domain.entities import Listing, ListingStatus
 
@@ -21,15 +21,15 @@ class ModerationApplicationService:
     ) -> Listing:
         listing = self.listings.get(listing_id)
         if listing is None:
-            raise ApplicationError(404, "Listing not found")
+            raise NotFoundError("Listing not found")
         if listing.status != ListingStatus.PENDING:
-            raise ApplicationError(409, "Only pending listings can be moderated")
+            raise ConflictError("Only pending listings can be moderated")
         if approved:
             listing.status = ListingStatus.APPROVED
             listing.rejection_reason = None
         else:
             if not rejection_reason:
-                raise ApplicationError(400, "Rejection reason is required")
+                raise ValidationError("Rejection reason is required")
             listing.status = ListingStatus.REJECTED
             listing.rejection_reason = rejection_reason.strip()
         self.uow.commit()

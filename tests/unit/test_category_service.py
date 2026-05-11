@@ -1,14 +1,22 @@
 import pytest
-from fastapi import HTTPException
 
-from src.dto.schemas import CategoryCreateDTO, CategoryUpdateDTO
+from src.adapters.persistence.mongodb.repositories import MongoCategoryRepository, MongoUnitOfWork
+from src.application.common.errors import ConflictError, NotFoundError
+from src.application.services.categories import CategoryApplicationService
 from src.models.entities import Listing, User
-from src.services.category_service import CategoryService
+
+
+def build_service(db_session):
+    return CategoryApplicationService(
+        categories=MongoCategoryRepository(db_session),
+        uow=MongoUnitOfWork(db_session),
+    )
 
 
 def test_create_category(db_session):
-    category = CategoryService(db_session).create(
-        CategoryCreateDTO(name="Vehicles", description="Cars, bikes, scooters")
+    category = build_service(db_session).create(
+        name="Vehicles",
+        description="Cars, bikes, scooters",
     )
     assert category.id is not None
 
@@ -29,48 +37,44 @@ def test_create_category(db_session):
     ],
 )
 def test_create_multiple_unique_categories(db_session, name):
-    category = CategoryService(db_session).create(
-        CategoryCreateDTO(name=name, description=f"{name} description")
-    )
+    category = build_service(db_session).create(name=name, description=f"{name} description")
     assert category.name == name
 
 
 def test_duplicate_category_rejected(db_session):
-    service = CategoryService(db_session)
-    service.create(CategoryCreateDTO(name="Electronics", description="Devices and gadgets"))
-    with pytest.raises(HTTPException):
-        service.create(CategoryCreateDTO(name="Electronics", description="Duplicate name"))
+    service = build_service(db_session)
+    service.create(name="Electronics", description="Devices and gadgets")
+    with pytest.raises(ConflictError):
+        service.create(name="Electronics", description="Duplicate name")
 
 
 def test_get_category_by_id(db_session):
-    category = CategoryService(db_session).create(
-        CategoryCreateDTO(name="Garden", description="Outdoor and gardening supplies")
+    category = build_service(db_session).create(
+        name="Garden",
+        description="Outdoor and gardening supplies",
     )
-    fetched = CategoryService(db_session).get_by_id(category.id)
+    fetched = build_service(db_session).get_by_id(category.id)
     assert fetched.id == category.id
 
 
 def test_update_category(db_session):
-    service = CategoryService(db_session)
-    category = service.create(CategoryCreateDTO(name="Home", description="Home accessories"))
-    updated = service.update(
-        category.id,
-        CategoryUpdateDTO(name="Home Decor", description="Decor and furniture"),
-    )
+    service = build_service(db_session)
+    category = service.create(name="Home", description="Home accessories")
+    updated = service.update(category.id, name="Home Decor", description="Decor and furniture")
     assert updated.name == "Home Decor"
 
 
 def test_delete_category_without_listings(db_session):
-    service = CategoryService(db_session)
-    category = service.create(CategoryCreateDTO(name="Travel", description="Travel items"))
+    service = build_service(db_session)
+    category = service.create(name="Travel", description="Travel items")
     service.delete(category.id)
-    with pytest.raises(HTTPException):
+    with pytest.raises(NotFoundError):
         service.get_by_id(category.id)
 
 
 def test_delete_category_with_listings_rejected(db_session):
-    service = CategoryService(db_session)
-    category = service.create(CategoryCreateDTO(name="Office", description="Office items"))
+    service = build_service(db_session)
+    category = service.create(name="Office", description="Office items")
     owner = User(email="office@test.com", full_name="Office Owner", password_hash="hashed")
     db_session.add(owner)
     db_session.commit()
@@ -84,5 +88,5 @@ def test_delete_category_with_listings_rejected(db_session):
         )
     )
     db_session.commit()
-    with pytest.raises(HTTPException):
+    with pytest.raises(ConflictError):
         service.delete(category.id)

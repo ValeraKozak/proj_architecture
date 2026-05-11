@@ -1,6 +1,6 @@
 import logging
 
-from src.application.common.errors import ApplicationError
+from src.application.common.errors import ForbiddenError, NotFoundError, ValidationError
 from src.application.ports.repositories import (
     CategoryRepositoryPort,
     ListingRepositoryPort,
@@ -36,9 +36,9 @@ class ListingApplicationService:
         owner: User,
     ) -> Listing:
         if owner.is_blocked:
-            raise ApplicationError(403, "Blocked users cannot post")
+            raise ForbiddenError("Blocked users cannot post")
         if self.categories.get(category_id) is None:
-            raise ApplicationError(404, "Category not found")
+            raise NotFoundError("Category not found")
         listing = Listing(
             title=title.strip(),
             description=description.strip(),
@@ -68,7 +68,7 @@ class ListingApplicationService:
     ) -> Listing:
         listing = self._get_owned_listing(listing_id, owner.id)
         if category_id is not None and self.categories.get(category_id) is None:
-            raise ApplicationError(404, "Category not found")
+            raise NotFoundError("Category not found")
         if title is not None:
             listing.title = title.strip()
         if description is not None:
@@ -98,7 +98,7 @@ class ListingApplicationService:
         sort_order: str = "desc",
     ) -> list[Listing]:
         if min_price is not None and max_price is not None and min_price > max_price:
-            raise ApplicationError(400, "min_price cannot be greater than max_price")
+            raise ValidationError("min_price cannot be greater than max_price")
         listings = self.listings.list_visible(
             query=query,
             category_id=category_id,
@@ -112,16 +112,16 @@ class ListingApplicationService:
     def get_by_id(self, listing_id: int, current_user: User | None = None) -> Listing:
         listing = self.listings.get(listing_id)
         if listing is None:
-            raise ApplicationError(404, "Listing not found")
+            raise NotFoundError("Listing not found")
         if listing.status == ListingStatus.APPROVED:
             self._enrich_listing(listing)
             return listing
         if current_user is None:
-            raise ApplicationError(404, "Listing not found")
+            raise NotFoundError("Listing not found")
         if current_user.id == listing.owner_id or current_user.role in {Role.ADMIN, Role.MODERATOR}:
             self._enrich_listing(listing)
             return listing
-        raise ApplicationError(404, "Listing not found")
+        raise NotFoundError("Listing not found")
 
     def get_owned(self, owner: User) -> list[Listing]:
         return self._enrich_listings(self.listings.list_owned(owner.id))
@@ -129,19 +129,18 @@ class ListingApplicationService:
     def get_for_moderation(self) -> list[Listing]:
         return self._enrich_listings(self.listings.list_for_moderation())
 
-    def delete(self, listing_id: int, owner: User) -> dict[str, str]:
+    def delete(self, listing_id: int, owner: User) -> None:
         listing = self._get_owned_listing(listing_id, owner.id)
         self.listings.delete(listing)
         self.uow.commit()
         logger.info("Listing deleted listing_id=%s owner_id=%s", listing.id, owner.id)
-        return {"message": "Listing deleted"}
 
     def _get_owned_listing(self, listing_id: int, owner_id: int | None) -> Listing:
         listing = self.listings.get(listing_id)
         if listing is None:
-            raise ApplicationError(404, "Listing not found")
+            raise NotFoundError("Listing not found")
         if listing.owner_id != owner_id:
-            raise ApplicationError(403, "Not your listing")
+            raise ForbiddenError("Not your listing")
         return listing
 
     @staticmethod

@@ -1,28 +1,32 @@
 import pytest
-from fastapi import HTTPException
 
-from src.dto.schemas import UserCreateDTO, UserLoginDTO
-from src.services.auth_service import AuthService
+from src.adapters.http.security import PasswordManagerAdapter, TokenServiceAdapter
+from src.adapters.persistence.mongodb.repositories import MongoUnitOfWork, MongoUserRepository
+from src.application.common.errors import ConflictError, ForbiddenError, UnauthorizedError
+from src.application.services.auth import AuthApplicationService
+
+
+def build_service(db_session):
+    return AuthApplicationService(
+        users=MongoUserRepository(db_session),
+        uow=MongoUnitOfWork(db_session),
+        password_manager=PasswordManagerAdapter(),
+        token_service=TokenServiceAdapter(),
+    )
 
 
 def test_register_creates_user(db_session):
-    service = AuthService(db_session)
-    user = service.register(
-        UserCreateDTO(email="new@example.com", full_name="New User", password="password123")
-    )
+    service = build_service(db_session)
+    user = service.register(email="new@example.com", full_name="New User", password="password123")
     assert user.id is not None
     assert user.email == "new@example.com"
 
 
 def test_register_rejects_duplicate_email(db_session):
-    service = AuthService(db_session)
-    service.register(
-        UserCreateDTO(email="dup@example.com", full_name="First User", password="password123")
-    )
-    with pytest.raises(HTTPException):
-        service.register(
-            UserCreateDTO(email="dup@example.com", full_name="Second User", password="password123")
-        )
+    service = build_service(db_session)
+    service.register(email="dup@example.com", full_name="First User", password="password123")
+    with pytest.raises(ConflictError):
+        service.register(email="dup@example.com", full_name="Second User", password="password123")
 
 
 @pytest.mark.parametrize(
@@ -41,24 +45,24 @@ def test_register_rejects_duplicate_email(db_session):
     ],
 )
 def test_login_matrix(db_session, email, password, should_pass):
-    service = AuthService(db_session)
-    service.register(
-        UserCreateDTO(email="login1@example.com", full_name="Login User", password="password123")
-    )
+    service = build_service(db_session)
+    service.register(email="login1@example.com", full_name="Login User", password="password123")
     if should_pass:
-        token = service.login(UserLoginDTO(email=email, password=password))
-        assert token.access_token
+        token = service.login(email=email, password=password)
+        assert token
     else:
-        with pytest.raises(HTTPException):
-            service.login(UserLoginDTO(email=email or "empty@example.com", password=password))
+        with pytest.raises(UnauthorizedError):
+            service.login(email=email or "empty@example.com", password=password)
 
 
 def test_login_rejects_blocked_user(db_session):
-    service = AuthService(db_session)
+    service = build_service(db_session)
     user = service.register(
-        UserCreateDTO(email="blocked@example.com", full_name="Blocked User", password="password123")
+        email="blocked@example.com",
+        full_name="Blocked User",
+        password="password123",
     )
     user.is_blocked = True
     db_session.commit()
-    with pytest.raises(HTTPException):
-        service.login(UserLoginDTO(email="blocked@example.com", password="password123"))
+    with pytest.raises(ForbiddenError):
+        service.login(email="blocked@example.com", password="password123")

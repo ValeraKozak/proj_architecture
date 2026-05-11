@@ -1,6 +1,6 @@
 import logging
 
-from src.application.common.errors import ApplicationError
+from src.application.common.errors import ForbiddenError, NotFoundError, ValidationError
 from src.application.ports.repositories import (
     ListingRepositoryPort,
     MessageRepositoryPort,
@@ -27,15 +27,15 @@ class MessageApplicationService:
 
     def send(self, *, listing_id: int, recipient_id: int, body: str, sender: User) -> Message:
         if sender.is_blocked:
-            raise ApplicationError(403, "Blocked users cannot send messages")
+            raise ForbiddenError("Blocked users cannot send messages")
         if sender.id == recipient_id:
-            raise ApplicationError(400, "Cannot send message to yourself")
+            raise ValidationError("Cannot send message to yourself")
         listing = self.listings.get(listing_id)
         if listing is None or listing.status != ListingStatus.APPROVED:
-            raise ApplicationError(400, "Messages are allowed only for approved listings")
+            raise ValidationError("Messages are allowed only for approved listings")
         recipient = self.users.get(recipient_id)
         if recipient is None:
-            raise ApplicationError(404, "Recipient not found")
+            raise NotFoundError("Recipient not found")
         message = Message(
             listing_id=listing_id,
             sender_id=sender.id,
@@ -60,15 +60,14 @@ class MessageApplicationService:
     def get_user_message(self, message_id: int, user_id: int) -> Message:
         message = self.messages.get_for_user(message_id, user_id)
         if message is None:
-            raise ApplicationError(404, "Message not found")
+            raise NotFoundError("Message not found")
         return self._enrich_message(message)
 
-    def delete_user_message(self, message_id: int, user_id: int) -> dict[str, str]:
+    def delete_user_message(self, message_id: int, user_id: int) -> None:
         message = self.get_user_message(message_id, user_id)
         self.messages.delete(message)
         self.uow.commit()
         logger.info("Message deleted message_id=%s user_id=%s", message_id, user_id)
-        return {"message": "Message deleted"}
 
     def _enrich_message(self, message: Message) -> Message:
         if message.sender_id is not None:

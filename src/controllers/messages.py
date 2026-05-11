@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
 from src.adapters.http.dependencies import get_message_service
+from src.adapters.http.security import get_current_user
 from src.application.services import MessageApplicationService
-from src.core.security import get_current_user
 from src.dto.schemas import DeleteResponseDTO, MessageCreateDTO, MessageReadDTO
 from src.models.entities import User
 
@@ -46,4 +46,5 @@ def delete_message(
     service: MessageApplicationService = Depends(get_message_service),
     current_user: User = Depends(get_current_user),
 ) -> DeleteResponseDTO:
-    return DeleteResponseDTO(**service.delete_user_message(message_id, current_user.id))
+    service.delete_user_message(message_id, current_user.id)
+    return DeleteResponseDTO(message="Message deleted")

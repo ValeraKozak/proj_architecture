@@ -1,9 +1,23 @@
 import pytest
-from fastapi import HTTPException
 
-from src.dto.schemas import ListingCreateDTO, ListingUpdateDTO
+from src.adapters.persistence.mongodb.repositories import (
+    MongoCategoryRepository,
+    MongoListingRepository,
+    MongoUnitOfWork,
+    MongoUserRepository,
+)
+from src.application.common.errors import ForbiddenError, NotFoundError
+from src.application.services.listings import ListingApplicationService
 from src.models.entities import Category, ListingStatus, User
-from src.services.listing_service import ListingService
+
+
+def build_service(db_session):
+    return ListingApplicationService(
+        listings=MongoListingRepository(db_session),
+        categories=MongoCategoryRepository(db_session),
+        users=MongoUserRepository(db_session),
+        uow=MongoUnitOfWork(db_session),
+    )
 
 
 @pytest.fixture
@@ -19,15 +33,13 @@ def owner_and_category(db_session):
 
 def test_create_listing_sets_pending_status(db_session, owner_and_category):
     owner, category = owner_and_category
-    listing = ListingService(db_session).create(
-        ListingCreateDTO(
-            title="iPhone 14 Pro",
-            description="Used phone in great condition with charger and long enough text.",
-            price=900,
-            category_id=category.id,
-            image_urls=["https://images.example.com/iphone-front.jpg"],
-        ),
-        owner,
+    listing = build_service(db_session).create(
+        title="iPhone 14 Pro",
+        description="Used phone in great condition with charger and long enough text.",
+        price=900,
+        category_id=category.id,
+        image_urls=["https://images.example.com/iphone-front.jpg"],
+        owner=owner,
     )
     assert listing.status == ListingStatus.PENDING
     assert listing.image_urls == ["https://images.example.com/iphone-front.jpg"]
@@ -36,29 +48,27 @@ def test_create_listing_sets_pending_status(db_session, owner_and_category):
 @pytest.mark.parametrize("price", [1, 5, 10, 49.99, 100, 250, 999.99, 1500, 2500, 5000])
 def test_create_listing_accepts_positive_prices(db_session, owner_and_category, price):
     owner, category = owner_and_category
-    listing = ListingService(db_session).create(
-        ListingCreateDTO(
-            title=f"Valid title {price}",
-            description="Long enough description for a valid listing submission text.",
-            price=price,
-            category_id=category.id,
-        ),
-        owner,
+    listing = build_service(db_session).create(
+        title=f"Valid title {price}",
+        description="Long enough description for a valid listing submission text.",
+        price=price,
+        category_id=category.id,
+        image_urls=[],
+        owner=owner,
     )
     assert listing.price == price
 
 
 def test_create_listing_rejects_missing_category(db_session, owner_and_category):
     owner, _ = owner_and_category
-    with pytest.raises(HTTPException):
-        ListingService(db_session).create(
-            ListingCreateDTO(
-                title="Missing category",
-                description="Long enough description to pass dto validation.",
-                price=10,
-                category_id=999,
-            ),
-            owner,
+    with pytest.raises(NotFoundError):
+        build_service(db_session).create(
+            title="Missing category",
+            description="Long enough description to pass dto validation.",
+            price=10,
+            category_id=999,
+            image_urls=[],
+            owner=owner,
         )
 
 
@@ -66,56 +76,43 @@ def test_create_listing_rejects_blocked_owner(db_session, owner_and_category):
     owner, category = owner_and_category
     owner.is_blocked = True
     db_session.commit()
-    with pytest.raises(HTTPException):
-        ListingService(db_session).create(
-            ListingCreateDTO(
-                title="Blocked owner",
-                description="Long enough description to pass dto validation.",
-                price=100,
-                category_id=category.id,
-            ),
-            owner,
+    with pytest.raises(ForbiddenError):
+        build_service(db_session).create(
+            title="Blocked owner",
+            description="Long enough description to pass dto validation.",
+            price=100,
+            category_id=category.id,
+            image_urls=[],
+            owner=owner,
         )
 
 
 @pytest.mark.parametrize(
     ("title", "price"),
-    [
-        ("Updated title 1", 20),
-        ("Updated title 2", 21),
-        ("Updated title 3", 22),
-        ("Updated title 4", 23),
-        ("Updated title 5", 24),
-        ("Updated title 6", 25),
-        ("Updated title 7", 26),
-        ("Updated title 8", 27),
-        ("Updated title 9", 28),
-        ("Updated title 10", 29),
-    ],
+    [(f"Updated title {index}", 19 + index) for index in range(1, 11)],
 )
 def test_update_listing_resets_status(db_session, owner_and_category, title, price):
     owner, category = owner_and_category
-    service = ListingService(db_session)
+    service = build_service(db_session)
     listing = service.create(
-        ListingCreateDTO(
-            title="Original title",
-            description="Original long enough description for listing submission.",
-            price=19,
-            category_id=category.id,
-        ),
-        owner,
+        title="Original title",
+        description="Original long enough description for listing submission.",
+        price=19,
+        category_id=category.id,
+        image_urls=[],
+        owner=owner,
     )
     listing.status = ListingStatus.REJECTED
     listing.rejection_reason = "Fix details"
     db_session.commit()
     updated = service.update(
         listing.id,
-        ListingUpdateDTO(
-            title=title,
-            price=price,
-            image_urls=["https://images.example.com/updated-listing.jpg"],
-        ),
-        owner,
+        title=title,
+        description=None,
+        price=price,
+        category_id=None,
+        image_urls=["https://images.example.com/updated-listing.jpg"],
+        owner=owner,
     )
     assert updated.status == ListingStatus.PENDING
     assert updated.rejection_reason is None
@@ -124,15 +121,14 @@ def test_update_listing_resets_status(db_session, owner_and_category, title, pri
 
 def test_get_owned_listings_returns_owner_items(db_session, owner_and_category):
     owner, category = owner_and_category
-    service = ListingService(db_session)
+    service = build_service(db_session)
     service.create(
-        ListingCreateDTO(
-            title="Owner listing",
-            description="Detailed description for owner listing in owned list test.",
-            price=50,
-            category_id=category.id,
-        ),
-        owner,
+        title="Owner listing",
+        description="Detailed description for owner listing in owned list test.",
+        price=50,
+        category_id=category.id,
+        image_urls=[],
+        owner=owner,
     )
     listings = service.get_owned(owner)
     assert len(listings) == 1
@@ -145,46 +141,42 @@ def test_get_public_listings_supports_search_and_filters(db_session, owner_and_c
     db_session.commit()
     db_session.refresh(furniture)
 
-    service = ListingService(db_session)
+    service = build_service(db_session)
     matching = service.create(
-        ListingCreateDTO(
-            title="Gaming Chair Pro",
-            description="Comfortable ergonomic chair with headrest and adjustable armrests.",
-            price=220,
-            category_id=furniture.id,
-        ),
-        owner,
+        title="Gaming Chair Pro",
+        description="Comfortable ergonomic chair with headrest and adjustable armrests.",
+        price=220,
+        category_id=furniture.id,
+        image_urls=[],
+        owner=owner,
     )
     matching.status = ListingStatus.APPROVED
     ignored = service.create(
-        ListingCreateDTO(
-            title="Desk Lamp",
-            description="Bright lamp with long enough text for the validation rules.",
-            price=45,
-            category_id=category.id,
-        ),
-        owner,
+        title="Desk Lamp",
+        description="Bright lamp with long enough text for the validation rules.",
+        price=45,
+        category_id=category.id,
+        image_urls=[],
+        owner=owner,
     )
     ignored.status = ListingStatus.APPROVED
     db_session.commit()
 
     listings = service.get_public(query="chair", min_price=100, sort_by="price", sort_order="asc")
-
     assert [listing.id for listing in listings] == [matching.id]
     assert ignored.id not in [listing.id for listing in listings]
 
 
 def test_get_listing_by_id_visible_for_owner(db_session, owner_and_category):
     owner, category = owner_and_category
-    service = ListingService(db_session)
+    service = build_service(db_session)
     listing = service.create(
-        ListingCreateDTO(
-            title="Hidden listing",
-            description="Pending listing with enough details for owner access.",
-            price=75,
-            category_id=category.id,
-        ),
-        owner,
+        title="Hidden listing",
+        description="Pending listing with enough details for owner access.",
+        price=75,
+        category_id=category.id,
+        image_urls=[],
+        owner=owner,
     )
     fetched = service.get_by_id(listing.id, owner)
     assert fetched.id == listing.id
@@ -192,17 +184,15 @@ def test_get_listing_by_id_visible_for_owner(db_session, owner_and_category):
 
 def test_delete_listing_archives_listing(db_session, owner_and_category):
     owner, category = owner_and_category
-    service = ListingService(db_session)
+    service = build_service(db_session)
     listing = service.create(
-        ListingCreateDTO(
-            title="Archive me",
-            description="Listing description long enough for archive deletion scenario.",
-            price=42,
-            category_id=category.id,
-        ),
-        owner,
+        title="Archive me",
+        description="Listing description long enough for archive deletion scenario.",
+        price=42,
+        category_id=category.id,
+        image_urls=[],
+        owner=owner,
     )
-    result = service.delete(listing.id, owner)
-    assert result.message == "Listing deleted"
-    with pytest.raises(HTTPException):
+    service.delete(listing.id, owner)
+    with pytest.raises(NotFoundError):
         service.get_by_id(listing.id, owner)

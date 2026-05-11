@@ -1,5 +1,22 @@
 class ApplicationError(Exception):
-    def __init__(self, status_code: int, detail: str) -> None:
-        super().__init__(detail)
-        self.status_code = status_code
-        self.detail = detail
+    pass
+
+
+class ValidationError(ApplicationError):
+    pass
+
+
+class UnauthorizedError(ApplicationError):
+    pass
+
+
+class ForbiddenError(ApplicationError):
+    pass
+
+
+class NotFoundError(ApplicationError):
+    pass
+
+
+class ConflictError(ApplicationError):
+    pass

@@ -1,17 +1,14 @@
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.adapters.http.dependencies import get_listing_service
+from src.adapters.http.security import get_current_user, get_optional_current_user, require_role
 from src.application.services import ListingApplicationService
-from src.core.security import get_current_user, require_role
-from src.db.database import get_db
 from src.dto.schemas import DeleteResponseDTO, ListingCreateDTO, ListingReadDTO, ListingUpdateDTO
 from src.models.entities import Role, User
 
 router = APIRouter(prefix="/listings", tags=["listings"])
-optional_bearer = HTTPBearer(auto_error=False)
 
 
 @router.post("", response_model=ListingReadDTO, status_code=201)
@@ -37,13 +34,16 @@ def update_listing(
     service: ListingApplicationService = Depends(get_listing_service),
     current_user: User = Depends(get_current_user),
 ) -> ListingReadDTO:
+    image_urls = None
+    if payload.image_urls is not None:
+        image_urls = [str(url) for url in payload.image_urls]
     return service.update(
         listing_id,
         title=payload.title,
         description=payload.description,
         price=payload.price,
         category_id=payload.category_id,
-        image_urls=None if payload.image_urls is None else [str(url) for url in payload.image_urls],
+        image_urls=image_urls,
         owner=current_user,
     )
 
@@ -88,12 +88,8 @@ def moderation_queue(
 def get_listing(
     listing_id: int,
     service: ListingApplicationService = Depends(get_listing_service),
-    credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
-    db=Depends(get_db),
+    current_user: User | None = Depends(get_optional_current_user),
 ) -> ListingReadDTO:
-    current_user = None
-    if credentials is not None:
-        current_user = get_current_user(credentials=credentials, db=db)
     return service.get_by_id(listing_id, current_user)
 
 
@@ -103,4 +99,5 @@ def delete_listing(
     service: ListingApplicationService = Depends(get_listing_service),
     current_user: User = Depends(get_current_user),
 ) -> DeleteResponseDTO:
-    return DeleteResponseDTO(**service.delete(listing_id, current_user))
+    service.delete(listing_id, current_user)
+    return DeleteResponseDTO(message="Listing deleted")

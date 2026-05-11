@@ -1,6 +1,6 @@
 import logging
 
-from src.application.common.errors import ApplicationError
+from src.application.common.errors import ConflictError, NotFoundError
 from src.application.ports.repositories import UnitOfWorkPort, UserRepositoryPort
 from src.domain.entities import Role, User
 
@@ -18,7 +18,7 @@ class UserApplicationService:
     def get_by_id(self, user_id: int) -> User:
         user = self.users.get(user_id)
         if user is None:
-            raise ApplicationError(404, "User not found")
+            raise NotFoundError("User not found")
         return user
 
     def update_self(self, current_user: User, *, full_name: str) -> User:
@@ -52,7 +52,7 @@ class UserApplicationService:
     def delete(self, user_id: int) -> None:
         user = self.get_by_id(user_id)
         if self.users.has_related_content(user_id):
-            raise ApplicationError(409, "Cannot delete user with related listings or messages")
+            raise ConflictError("Cannot delete user with related listings or messages")
         self.users.delete(user)
         self.uow.commit()
         logger.info("User deleted user_id=%s", user_id)

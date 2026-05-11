@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
 from src.adapters.http.dependencies import get_moderation_service
+from src.adapters.http.security import require_role
 from src.application.services import ModerationApplicationService
-from src.core.security import require_role
 from src.dto.schemas import ListingReadDTO, ModerationDecisionDTO
 from src.models.entities import Role, User
 

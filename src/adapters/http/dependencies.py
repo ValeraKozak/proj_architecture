@@ -1,5 +1,6 @@
 from fastapi import Depends
 
+from src.adapters.http.security import PasswordManagerAdapter, TokenServiceAdapter
 from src.adapters.persistence.mongodb.repositories import (
     MongoCategoryRepository,
     MongoListingRepository,
@@ -7,15 +8,17 @@ from src.adapters.persistence.mongodb.repositories import (
     MongoUnitOfWork,
     MongoUserRepository,
 )
+from src.adapters.storage.local_files import LocalFileStorageAdapter
 from src.application.services import (
     AuthApplicationService,
     CategoryApplicationService,
     ListingApplicationService,
     MessageApplicationService,
     ModerationApplicationService,
+    UploadApplicationService,
     UserApplicationService,
 )
-from src.core.security import PasswordManagerAdapter, TokenServiceAdapter
+from src.core.config import get_settings
 from src.db.database import DatabaseSession, get_db
 
 
@@ -64,4 +67,12 @@ def get_user_service(db: DatabaseSession = Depends(get_db)) -> UserApplicationSe
     return UserApplicationService(
         users=MongoUserRepository(db),
         uow=MongoUnitOfWork(db),
+    )
+
+
+def get_upload_service() -> UploadApplicationService:
+    settings = get_settings()
+    return UploadApplicationService(
+        storage=LocalFileStorageAdapter(settings.upload_dir),
+        uploads_url_prefix=settings.uploads_url_prefix,
     )

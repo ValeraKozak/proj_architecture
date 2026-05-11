@@ -1,10 +1,31 @@
 import pytest
-from fastapi import HTTPException
 
-from src.dto.schemas import MessageCreateDTO, ModerationDecisionDTO
+from src.adapters.persistence.mongodb.repositories import (
+    MongoListingRepository,
+    MongoMessageRepository,
+    MongoUnitOfWork,
+    MongoUserRepository,
+)
+from src.application.common.errors import NotFoundError, ValidationError
+from src.application.services.messages import MessageApplicationService
+from src.application.services.moderation import ModerationApplicationService
 from src.models.entities import Category, Listing, ListingStatus, Role, User
-from src.services.message_service import MessageService
-from src.services.moderation_service import ModerationService
+
+
+def build_message_service(db_session):
+    return MessageApplicationService(
+        messages=MongoMessageRepository(db_session),
+        listings=MongoListingRepository(db_session),
+        users=MongoUserRepository(db_session),
+        uow=MongoUnitOfWork(db_session),
+    )
+
+
+def build_moderation_service(db_session):
+    return ModerationApplicationService(
+        listings=MongoListingRepository(db_session),
+        uow=MongoUnitOfWork(db_session),
+    )
 
 
 @pytest.fixture
@@ -62,55 +83,48 @@ def message_context(db_session):
     ],
 )
 def test_send_message_success_cases(db_session, message_context, body):
-    message = MessageService(db_session).send(
-        MessageCreateDTO(
-            listing_id=message_context["listing"].id,
-            recipient_id=message_context["owner"].id,
-            body=body,
-        ),
-        message_context["buyer"],
+    message = build_message_service(db_session).send(
+        listing_id=message_context["listing"].id,
+        recipient_id=message_context["owner"].id,
+        body=body,
+        sender=message_context["buyer"],
     )
     assert message.body == body
 
 
 def test_send_message_rejects_self_message(db_session, message_context):
-    with pytest.raises(HTTPException):
-        MessageService(db_session).send(
-            MessageCreateDTO(
-                listing_id=message_context["listing"].id,
-                recipient_id=message_context["buyer"].id,
-                body="Hello",
-            ),
-            message_context["buyer"],
+    with pytest.raises(ValidationError):
+        build_message_service(db_session).send(
+            listing_id=message_context["listing"].id,
+            recipient_id=message_context["buyer"].id,
+            body="Hello",
+            sender=message_context["buyer"],
         )
 
 
 def test_send_message_rejects_unapproved_listing(db_session, message_context):
-    with pytest.raises(HTTPException):
-        MessageService(db_session).send(
-            MessageCreateDTO(
-                listing_id=message_context["pending_listing"].id,
-                recipient_id=message_context["owner"].id,
-                body="Hello",
-            ),
-            message_context["buyer"],
+    with pytest.raises(ValidationError):
+        build_message_service(db_session).send(
+            listing_id=message_context["pending_listing"].id,
+            recipient_id=message_context["owner"].id,
+            body="Hello",
+            sender=message_context["buyer"],
         )
 
 
 def test_get_and_delete_user_message(db_session, message_context):
-    service = MessageService(db_session)
+    service = build_message_service(db_session)
     message = service.send(
-        MessageCreateDTO(
-            listing_id=message_context["listing"].id,
-            recipient_id=message_context["owner"].id,
-            body="Checking message retrieval flow.",
-        ),
-        message_context["buyer"],
+        listing_id=message_context["listing"].id,
+        recipient_id=message_context["owner"].id,
+        body="Checking message retrieval flow.",
+        sender=message_context["buyer"],
     )
     fetched = service.get_user_message(message.id, message_context["buyer"].id)
     assert fetched.id == message.id
-    result = service.delete_user_message(message.id, message_context["buyer"].id)
-    assert result.message == "Message deleted"
+    service.delete_user_message(message.id, message_context["buyer"].id)
+    with pytest.raises(NotFoundError):
+        service.get_user_message(message.id, message_context["buyer"].id)
 
 
 @pytest.mark.parametrize(
@@ -133,15 +147,18 @@ def test_moderation_review_paths(db_session, message_context, approved, reason, 
     if pending.status != ListingStatus.PENDING:
         pending.status = ListingStatus.PENDING
         db_session.commit()
-    result = ModerationService(db_session).review(
-        pending.id, ModerationDecisionDTO(approved=approved, rejection_reason=reason)
+    result = build_moderation_service(db_session).review(
+        pending.id,
+        approved=approved,
+        rejection_reason=reason,
     )
     assert result.status == expected_status
 
 
 def test_moderation_requires_reason_for_rejection(db_session, message_context):
-    with pytest.raises(HTTPException):
-        ModerationService(db_session).review(
+    with pytest.raises(ValidationError):
+        build_moderation_service(db_session).review(
             message_context["pending_listing"].id,
-            ModerationDecisionDTO(approved=False, rejection_reason=None),
+            approved=False,
+            rejection_reason=None,
         )

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, status
 
 from src.adapters.http.dependencies import get_user_service
+from src.adapters.http.security import get_current_user, require_role
 from src.application.services import UserApplicationService
-from src.core.security import get_current_user, require_role
 from src.dto.schemas import DeleteResponseDTO, UserAdminUpdateDTO, UserReadDTO, UserUpdateDTO
 from src.models.entities import Role, User
 

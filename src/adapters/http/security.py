@@ -3,17 +3,19 @@ import hmac
 import secrets
 from datetime import UTC, datetime, timedelta
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
 from src.adapters.persistence.mongodb.repositories import MongoUserRepository
+from src.application.common.errors import ForbiddenError, UnauthorizedError
 from src.application.ports.security import PasswordManagerPort, TokenServicePort
 from src.core.config import get_settings
 from src.db.database import DatabaseSession, get_db
-from src.models.entities import Role, User
+from src.domain.entities import Role, User
 
 security = HTTPBearer()
+optional_security = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
@@ -24,12 +26,7 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     salt, stored_digest = hashed_password.split("$", maxsplit=1)
-    candidate = hashlib.pbkdf2_hmac(
-        "sha256",
-        plain_password.encode(),
-        salt.encode(),
-        100_000,
-    ).hex()
+    candidate = hashlib.pbkdf2_hmac("sha256", plain_password.encode(), salt.encode(), 100_000).hex()
     return hmac.compare_digest(candidate, stored_digest)
 
 
@@ -53,33 +50,39 @@ class TokenServiceAdapter(TokenServicePort):
         return create_access_token(subject)
 
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: DatabaseSession = Depends(get_db),
-) -> User:
+def decode_user_from_token(token: str, db: DatabaseSession) -> User:
     settings = get_settings()
-    token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         email = payload.get("sub")
     except JWTError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token",
-        ) from exc
+        raise UnauthorizedError("Invalid authentication token") from exc
     user = MongoUserRepository(db).get_by_email(email)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise UnauthorizedError("User not found")
     return user
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: DatabaseSession = Depends(get_db),
+) -> User:
+    return decode_user_from_token(credentials.credentials, db)
+
+
+def get_optional_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_security),
+    db: DatabaseSession = Depends(get_db),
+) -> User | None:
+    if credentials is None:
+        return None
+    return decode_user_from_token(credentials.credentials, db)
 
 
 def require_role(*roles: Role):
     def dependency(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to perform this action",
-            )
+            raise ForbiddenError("You do not have permission to perform this action")
         return current_user
 
     return dependency

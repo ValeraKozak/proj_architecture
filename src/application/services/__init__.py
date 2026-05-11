@@ -3,6 +3,7 @@ from src.application.services.categories import CategoryApplicationService
 from src.application.services.listings import ListingApplicationService
 from src.application.services.messages import MessageApplicationService
 from src.application.services.moderation import ModerationApplicationService
+from src.application.services.uploads import UploadApplicationService
 from src.application.services.users import UserApplicationService
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "ListingApplicationService",
     "MessageApplicationService",
     "ModerationApplicationService",
+    "UploadApplicationService",
     "UserApplicationService",
 ]
