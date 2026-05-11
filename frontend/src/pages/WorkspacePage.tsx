@@ -1,8 +1,9 @@
-import type { Category, Listing, Message, User } from "../lib/types";
 import { AuthPanel } from "../components/AuthPanel";
-import { MetricStrip } from "../components/MetricStrip";
-import { SectionTitle } from "../components/SectionTitle";
+import { MessagesPanel } from "../components/MessagesPanel";
+import { ModeratorDashboard } from "../components/ModeratorDashboard";
 import { WorkspacePanels } from "../components/WorkspacePanels";
+import type { Category, Listing, Message, User } from "../lib/types";
+import { useSearchParams } from "react-router-dom";
 
 interface WorkspacePageProps {
   user: User | null;
@@ -24,30 +25,66 @@ interface WorkspacePageProps {
     listing_id: number,
     payload: { approved: boolean; rejection_reason?: string | null },
   ) => Promise<void>;
+  onSendMessage: (payload: { listing_id: number; recipient_id: number; body: string }) => Promise<void>;
 }
 
 export function WorkspacePage(props: WorkspacePageProps) {
+  const [searchParams] = useSearchParams();
+  const authMode = searchParams.get("auth") === "register" ? "register" : "login";
+
   return (
-    <div className="page-shell">
-      <section className="content-block split-layout workspace-layout">
-        <div>
-          <SectionTitle
-            eyebrow="Кабінет користувача"
-            title="Публікуйте, модеруйте і тримайте діалог з клієнтом в одному місці"
-            body="Ця зона зібрана навколо реальних задач: увійти без тертя, подати оголошення, побачити чергу модерації й не втратити повідомлення."
+    <div className="page-shell" id="workspace-overview">
+      {!props.user ? (
+        <section className="workspace-auth-shell">
+          <div className="workspace-auth-shell__copy">
+            <p className="eyebrow">Workspace access</p>
+            <h2>Sign in to publish listings, review messages, and manage moderation.</h2>
+            <p>
+              The updated workspace keeps all of your existing CRUD, auth, and messaging logic, but
+              presents it in a layout much closer to the provided reference.
+            </p>
+          </div>
+          <AuthPanel
+            initialMode={authMode}
+            onLogin={props.onLogin}
+            onRegister={props.onRegister}
           />
-          <MetricStrip
-            metrics={[
-              { label: "Вхід виконано", value: props.user ? "так" : "ні", tone: "mint" },
-              { label: "Роль", value: props.user?.role ?? "guest", tone: "sand" },
-              { label: "Повідомлення", value: String(props.messages.length), tone: "coral" },
-            ]}
-          />
-          <WorkspacePanels {...props} />
+        </section>
+      ) : null}
+
+      {(props.user?.role === "moderator" || props.user?.role === "admin") ? (
+        <ModeratorDashboard
+          user={props.user}
+          categories={props.categories}
+          pendingListings={props.pendingListings}
+          onModerateListing={props.onModerateListing}
+        />
+      ) : null}
+
+      <MessagesPanel
+        currentUser={props.user}
+        listings={[...props.myListings, ...props.pendingListings]}
+        messages={props.messages}
+        onSendMessage={props.onSendMessage}
+      />
+
+      <section className="content-block workspace-forms-shell">
+        <div className="workspace-forms-shell__header">
+          <div>
+            <p className="eyebrow">Seller workspace</p>
+            <h3>Create listings, manage categories, and keep your current flows intact</h3>
+          </div>
         </div>
-        <div>
-          <AuthPanel onLogin={props.onLogin} onRegister={props.onRegister} />
-        </div>
+        <WorkspacePanels
+          user={props.user}
+          categories={props.categories}
+          myListings={props.myListings}
+          pendingListings={props.pendingListings}
+          messages={props.messages}
+          onCreateListing={props.onCreateListing}
+          onCreateCategory={props.onCreateCategory}
+          onModerateListing={props.onModerateListing}
+        />
       </section>
     </div>
   );

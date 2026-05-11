@@ -109,6 +109,11 @@ export function App() {
     await handleLogin(email, password);
   }
 
+  function handleLogout() {
+    window.localStorage.removeItem(TOKEN_KEY);
+    setToken("");
+  }
+
   async function handleCreateListing(payload: {
     title: string;
     description: string;
@@ -167,7 +172,13 @@ export function App() {
 
   return (
     <div className={`app-shell${isErrorRoute ? " app-shell--error" : ""}`}>
-      {isErrorRoute ? null : <Header isAuthenticated={isAuthenticated} userName={user?.full_name} />}
+      {isErrorRoute ? null : (
+        <Header
+          isAuthenticated={isAuthenticated}
+          onLogout={handleLogout}
+          userName={user?.full_name}
+        />
+      )}
       <main>
         <Routes>
           <Route path="/" element={<HomePage health={health} categories={categories} listings={listings} />} />
@@ -197,6 +208,7 @@ export function App() {
                 onLogin={handleLogin}
                 onModerateListing={handleModerateListing}
                 onRegister={handleRegister}
+                onSendMessage={handleSendMessage}
                 pendingListings={pendingListings}
                 user={user}
               />

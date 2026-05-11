@@ -1,17 +1,22 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 interface AuthPanelProps {
   onLogin: (email: string, password: string) => Promise<void>;
   onRegister: (email: string, name: string, password: string) => Promise<void>;
+  initialMode?: "login" | "register";
 }
 
-export function AuthPanel({ onLogin, onRegister }: AuthPanelProps) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+export function AuthPanel({ onLogin, onRegister, initialMode = "login" }: AuthPanelProps) {
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -34,8 +39,19 @@ export function AuthPanel({ onLogin, onRegister }: AuthPanelProps) {
   return (
     <section className="auth-panel">
       <div className="auth-panel__intro">
+        <span className="auth-panel__eyebrow">Workspace access</span>
         <h3>Увійдіть, щоб публікувати, модерувати та відповідати на повідомлення.</h3>
         <p>Один кабінет для продавця, модератора і адміністратора без зайвих кроків.</p>
+      </div>
+      <div className="auth-highlights">
+        <div>
+          <strong>01</strong>
+          <span>One panel for publish, review, and conversation</span>
+        </div>
+        <div>
+          <strong>02</strong>
+          <span>Fast role-based access without extra screens</span>
+        </div>
       </div>
       <div className="auth-tabs">
         <button className={mode === "login" ? "active" : ""} onClick={() => setMode("login")}>
@@ -71,6 +87,7 @@ export function AuthPanel({ onLogin, onRegister }: AuthPanelProps) {
         <button className="cta-button" disabled={busy} type="submit">
           {busy ? "Працюємо..." : mode === "login" ? "Відкрити кабінет" : "Створити акаунт"}
         </button>
+        <p className="auth-footnote">Secure entry for sellers, moderators, and admins.</p>
       </form>
     </section>
   );
