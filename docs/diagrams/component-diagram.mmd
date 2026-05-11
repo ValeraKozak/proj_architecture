@@ -1,0 +1,21 @@
+flowchart LR
+    FE[React Frontend]
+    CTRL[FastAPI Controllers]
+    DEP[Dependency Providers]
+    APP[Application Services]
+    PORT[Ports]
+    SEC[Security Adapter]
+    PERSIST[Mongo Persistence Adapters]
+    STORE[Local File Storage Adapter]
+    DB[(MongoDB)]
+    FS[(Uploads Directory)]
+
+    FE --> CTRL
+    CTRL --> DEP
+    DEP --> APP
+    APP --> PORT
+    SEC --> PORT
+    PERSIST --> PORT
+    STORE --> PORT
+    PERSIST --> DB
+    STORE --> FS

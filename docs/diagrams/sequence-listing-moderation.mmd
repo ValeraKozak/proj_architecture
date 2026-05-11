@@ -1,0 +1,34 @@
+sequenceDiagram
+    actor Seller
+    actor Moderator
+    participant FE as Frontend
+    participant ListingsC as Listings Controller
+    participant ListingS as ListingApplicationService
+    participant CatRepo as CategoryRepositoryPort
+    participant ListingRepo as ListingRepositoryPort
+    participant UoW as UnitOfWorkPort
+    participant ModC as Moderation Controller
+    participant ModS as ModerationApplicationService
+
+    Seller->>FE: Fill listing form
+    FE->>ListingsC: POST /listings
+    ListingsC->>ListingS: create(...)
+    ListingS->>CatRepo: get(category_id)
+    CatRepo-->>ListingS: Category
+    ListingS->>ListingRepo: add(pending listing)
+    ListingS->>UoW: commit()
+    ListingsC-->>FE: ListingReadDTO(status=pending)
+
+    Moderator->>FE: Open moderation queue
+    FE->>ListingsC: GET /listings/moderation/pending
+    ListingsC->>ListingS: get_for_moderation()
+    ListingS->>ListingRepo: list_for_moderation()
+    ListingRepo-->>ListingS: pending listings
+    ListingsC-->>FE: queue
+
+    Moderator->>FE: Approve or decline
+    FE->>ModC: POST /moderation/listings/{id}
+    ModC->>ModS: moderate(...)
+    ModS->>ListingRepo: get(id)
+    ModS->>UoW: commit()
+    ModC-->>FE: ListingReadDTO(updated)

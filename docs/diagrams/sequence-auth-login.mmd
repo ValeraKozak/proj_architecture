@@ -1,0 +1,20 @@
+sequenceDiagram
+    actor User
+    participant FE as Frontend
+    participant AuthC as Auth Controller
+    participant AuthS as AuthApplicationService
+    participant UserRepo as UserRepositoryPort
+    participant Pwd as PasswordManagerPort
+    participant Token as TokenServicePort
+
+    User->>FE: Enter email and password
+    FE->>AuthC: POST /auth/login
+    AuthC->>AuthS: login(email, password)
+    AuthS->>UserRepo: get_by_email(email)
+    UserRepo-->>AuthS: User
+    AuthS->>Pwd: verify_password(...)
+    Pwd-->>AuthS: true
+    AuthS->>Token: create_access_token(user.email)
+    Token-->>AuthS: JWT
+    AuthS-->>AuthC: access token
+    AuthC-->>FE: TokenDTO

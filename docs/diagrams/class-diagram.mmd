@@ -6,12 +6,20 @@ classDiagram
         +string password_hash
         +Role role
         +bool is_blocked
+        +datetime created_at
     }
 
     class Category {
         +int id
         +string name
         +string description
+    }
+
+    class ListingImage {
+        +int id
+        +int listing_id
+        +string url
+        +int position
     }
 
     class Listing {
@@ -21,26 +29,62 @@ classDiagram
         +float price
         +ListingStatus status
         +string rejection_reason
+        +int owner_id
+        +string owner_name
+        +int category_id
+        +datetime created_at
+        +datetime updated_at
+        +list~string~ image_urls()
     }
 
     class Message {
         +int id
+        +int listing_id
+        +int sender_id
+        +int recipient_id
         +string body
+        +datetime created_at
     }
 
-    class AuthService
-    class UserService
-    class CategoryService
-    class ListingService
-    class MessageService
-    class ModerationService
-    class Repository~T~
+    class AuthApplicationService
+    class CategoryApplicationService
+    class ListingApplicationService
+    class MessageApplicationService
+    class ModerationApplicationService
+    class UserApplicationService
+    class UploadApplicationService
+
+    class UserRepositoryPort
+    class CategoryRepositoryPort
+    class ListingRepositoryPort
+    class MessageRepositoryPort
+    class UnitOfWorkPort
+    class PasswordManagerPort
+    class TokenServicePort
+    class StoragePort
 
     User "1" --> "*" Listing : owns
     Category "1" --> "*" Listing : classifies
-    Listing "1" --> "*" Message : includes
+    Listing "1" --> "*" ListingImage : contains
+    Listing "1" --> "*" Message : related_to
     User "1" --> "*" Message : sends/receives
-    CategoryService --> Repository~T~
-    ListingService --> Repository~T~
-    MessageService --> Repository~T~
-    UserService --> Repository~T~
+
+    AuthApplicationService ..> UserRepositoryPort
+    AuthApplicationService ..> UnitOfWorkPort
+    AuthApplicationService ..> PasswordManagerPort
+    AuthApplicationService ..> TokenServicePort
+    CategoryApplicationService ..> CategoryRepositoryPort
+    CategoryApplicationService ..> UnitOfWorkPort
+    ListingApplicationService ..> ListingRepositoryPort
+    ListingApplicationService ..> CategoryRepositoryPort
+    ListingApplicationService ..> UserRepositoryPort
+    ListingApplicationService ..> UnitOfWorkPort
+    MessageApplicationService ..> MessageRepositoryPort
+    MessageApplicationService ..> ListingRepositoryPort
+    MessageApplicationService ..> UserRepositoryPort
+    MessageApplicationService ..> UnitOfWorkPort
+    ModerationApplicationService ..> ListingRepositoryPort
+    ModerationApplicationService ..> UnitOfWorkPort
+    UserApplicationService ..> UserRepositoryPort
+    UserApplicationService ..> UnitOfWorkPort
+    UploadApplicationService ..> StoragePort

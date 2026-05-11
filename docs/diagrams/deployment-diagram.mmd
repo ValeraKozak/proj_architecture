@@ -1,0 +1,12 @@
+flowchart LR
+    Browser[Browser]
+    Vite[Frontend Dev Server / Static Build]
+    API[FastAPI App]
+    Mongo[(MongoDB)]
+    Uploads[(Uploads Directory)]
+
+    Browser --> Vite
+    Browser --> API
+    Vite --> API
+    API --> Mongo
+    API --> Uploads
