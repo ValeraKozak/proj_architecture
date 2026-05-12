@@ -1,82 +1,48 @@
-import hashlib
-import hmac
-import secrets
-from datetime import UTC, datetime, timedelta
-
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
-from src.adapters.persistence.mongodb.repositories import MongoUserRepository
+from src.adapters.http.dependencies import get_user_service
 from src.application.common.errors import ForbiddenError, UnauthorizedError
-from src.application.ports.security import PasswordManagerPort, TokenServicePort
+from src.application.services import UserApplicationService
 from src.core.config import get_settings
-from src.db.database import DatabaseSession, get_db
 from src.domain.entities import Role, User
 
 security = HTTPBearer()
 optional_security = HTTPBearer(auto_error=False)
 
 
-def hash_password(password: str) -> str:
-    salt = secrets.token_hex(16)
-    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex()
-    return f"{salt}${digest}"
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    salt, stored_digest = hashed_password.split("$", maxsplit=1)
-    candidate = hashlib.pbkdf2_hmac("sha256", plain_password.encode(), salt.encode(), 100_000).hex()
-    return hmac.compare_digest(candidate, stored_digest)
-
-
-def create_access_token(subject: str) -> str:
-    settings = get_settings()
-    expires_at = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
-    payload = {"sub": subject, "exp": expires_at}
-    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
-
-
-class PasswordManagerAdapter(PasswordManagerPort):
-    def hash_password(self, password: str) -> str:
-        return hash_password(password)
-
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return verify_password(plain_password, hashed_password)
-
-
-class TokenServiceAdapter(TokenServicePort):
-    def create_access_token(self, subject: str) -> str:
-        return create_access_token(subject)
-
-
-def decode_user_from_token(token: str, db: DatabaseSession) -> User:
+def decode_token_subject(token: str) -> str:
     settings = get_settings()
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        email = payload.get("sub")
+        subject = payload.get("sub")
     except JWTError as exc:
         raise UnauthorizedError("Invalid authentication token") from exc
-    user = MongoUserRepository(db).get_by_email(email)
+    if not subject or not isinstance(subject, str):
+        raise UnauthorizedError("Invalid authentication token")
+    return subject
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    service: UserApplicationService = Depends(get_user_service),
+) -> User:
+    email = decode_token_subject(credentials.credentials)
+    user = service.get_by_email(email)
     if user is None:
         raise UnauthorizedError("User not found")
     return user
 
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: DatabaseSession = Depends(get_db),
-) -> User:
-    return decode_user_from_token(credentials.credentials, db)
-
-
 def get_optional_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(optional_security),
-    db: DatabaseSession = Depends(get_db),
+    service: UserApplicationService = Depends(get_user_service),
 ) -> User | None:
     if credentials is None:
         return None
-    return decode_user_from_token(credentials.credentials, db)
+    email = decode_token_subject(credentials.credentials)
+    return service.get_by_email(email)
 
 
 def require_role(*roles: Role):

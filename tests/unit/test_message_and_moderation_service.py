@@ -9,7 +9,7 @@ from src.adapters.persistence.mongodb.repositories import (
 from src.application.common.errors import NotFoundError, ValidationError
 from src.application.services.messages import MessageApplicationService
 from src.application.services.moderation import ModerationApplicationService
-from src.models.entities import Category, Listing, ListingStatus, Role, User
+from src.domain.entities import Category, Listing, ListingStatus, Role, User
 
 
 def build_message_service(db_session):

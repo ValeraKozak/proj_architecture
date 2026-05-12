@@ -1,6 +1,6 @@
 import pytest
 
-from src.adapters.http.security import PasswordManagerAdapter, TokenServiceAdapter
+from src.adapters.http.security_services import PasswordManagerAdapter, TokenServiceAdapter
 from src.adapters.persistence.mongodb.repositories import MongoUnitOfWork, MongoUserRepository
 from src.application.common.errors import ConflictError, ForbiddenError, UnauthorizedError
 from src.application.services.auth import AuthApplicationService

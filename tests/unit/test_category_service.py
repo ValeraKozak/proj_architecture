@@ -3,7 +3,7 @@ import pytest
 from src.adapters.persistence.mongodb.repositories import MongoCategoryRepository, MongoUnitOfWork
 from src.application.common.errors import ConflictError, NotFoundError
 from src.application.services.categories import CategoryApplicationService
-from src.models.entities import Listing, User
+from src.domain.entities import Listing, User
 
 
 def build_service(db_session):

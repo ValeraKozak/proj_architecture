@@ -1,7 +1,7 @@
 import mongomock
 
-from src.db.database import DatabaseSession, initialize_database
-from src.models.entities import Category, Listing, ListingStatus, User
+from src.adapters.persistence.mongodb.database import DatabaseSession, initialize_database
+from src.domain.entities import Category, Listing, ListingStatus, User
 
 
 def test_mongodb_bootstrap_supports_related_documents():

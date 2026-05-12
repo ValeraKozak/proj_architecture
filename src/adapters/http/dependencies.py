@@ -1,6 +1,7 @@
 from fastapi import Depends
 
-from src.adapters.http.security import PasswordManagerAdapter, TokenServiceAdapter
+from src.adapters.http.security_services import PasswordManagerAdapter, TokenServiceAdapter
+from src.adapters.persistence.mongodb.database import DatabaseSession, get_db
 from src.adapters.persistence.mongodb.repositories import (
     MongoCategoryRepository,
     MongoListingRepository,
@@ -19,7 +20,6 @@ from src.application.services import (
     UserApplicationService,
 )
 from src.core.config import get_settings
-from src.db.database import DatabaseSession, get_db
 
 
 def get_auth_service(db: DatabaseSession = Depends(get_db)) -> AuthApplicationService:

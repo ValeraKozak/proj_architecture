@@ -3,7 +3,7 @@ import pytest
 from src.adapters.persistence.mongodb.repositories import MongoUnitOfWork, MongoUserRepository
 from src.application.common.errors import NotFoundError
 from src.application.services.users import UserApplicationService
-from src.models.entities import Role, User
+from src.domain.entities import Role, User
 
 
 def build_service(db_session):

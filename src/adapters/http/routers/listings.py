@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, Query
 from src.adapters.http.dependencies import get_listing_service
 from src.adapters.http.security import get_current_user, get_optional_current_user, require_role
 from src.application.services import ListingApplicationService
+from src.domain.entities import Role, User
 from src.dto.schemas import DeleteResponseDTO, ListingCreateDTO, ListingReadDTO, ListingUpdateDTO
-from src.models.entities import Role, User
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 

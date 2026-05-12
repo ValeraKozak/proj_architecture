@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends
 from src.adapters.http.dependencies import get_moderation_service
 from src.adapters.http.security import require_role
 from src.application.services import ModerationApplicationService
+from src.domain.entities import Role, User
 from src.dto.schemas import ListingReadDTO, ModerationDecisionDTO
-from src.models.entities import Role, User
 
 router = APIRouter(prefix="/moderation", tags=["moderation"])
 

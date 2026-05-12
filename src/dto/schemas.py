@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import AnyHttpUrl, BaseModel, EmailStr, Field, field_validator
 
-from src.models.entities import ListingStatus, Role
+from src.domain.entities import ListingStatus, Role
 
 
 class UserCreateDTO(BaseModel):

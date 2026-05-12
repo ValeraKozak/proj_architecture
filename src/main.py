@@ -9,10 +9,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from src.adapters.http.errors import handle_application_error
+from src.adapters.http.routers import (
+    auth,
+    categories,
+    listings,
+    messages,
+    moderation,
+    uploads,
+    users,
+)
+from src.adapters.persistence.mongodb.database import initialize_database
 from src.application.common.errors import ApplicationError
-from src.controllers import auth, categories, listings, messages, moderation, uploads, users
 from src.core.config import get_settings
-from src.db.database import initialize_database
 
 settings = get_settings()
 

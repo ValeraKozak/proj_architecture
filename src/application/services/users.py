@@ -21,6 +21,9 @@ class UserApplicationService:
             raise NotFoundError("User not found")
         return user
 
+    def get_by_email(self, email: str) -> User | None:
+        return self.users.get_by_email(email)
+
     def update_self(self, current_user: User, *, full_name: str) -> User:
         current_user.full_name = full_name.strip()
         self.uow.commit()

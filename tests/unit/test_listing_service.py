@@ -8,7 +8,7 @@ from src.adapters.persistence.mongodb.repositories import (
 )
 from src.application.common.errors import ForbiddenError, NotFoundError
 from src.application.services.listings import ListingApplicationService
-from src.models.entities import Category, ListingStatus, User
+from src.domain.entities import Category, ListingStatus, User
 
 
 def build_service(db_session):

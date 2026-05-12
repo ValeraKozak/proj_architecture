@@ -6,10 +6,15 @@ import mongomock
 import pytest
 from fastapi.testclient import TestClient
 
-from src.adapters.http.security import create_access_token
-from src.db.database import DatabaseSession, get_db, initialize_database, reset_database
+from src.adapters.http.security_services import create_access_token
+from src.adapters.persistence.mongodb.database import (
+    DatabaseSession,
+    get_db,
+    initialize_database,
+    reset_database,
+)
+from src.domain.entities import Category, Listing, ListingStatus, Role, User
 from src.main import app
-from src.models.entities import Category, Listing, ListingStatus, Role, User
 
 
 @pytest.fixture

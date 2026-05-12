@@ -1,7 +1,11 @@
 import mongomock
 
-from src.db.database import DatabaseSession, initialize_database, reset_database
-from src.models.entities import Category, User
+from src.adapters.persistence.mongodb.database import (
+    DatabaseSession,
+    initialize_database,
+    reset_database,
+)
+from src.domain.entities import Category, User
 
 
 def test_initialize_database_creates_expected_collections():

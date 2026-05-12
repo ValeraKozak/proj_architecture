@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends
 from src.adapters.http.dependencies import get_message_service
 from src.adapters.http.security import get_current_user
 from src.application.services import MessageApplicationService
+from src.domain.entities import User
 from src.dto.schemas import DeleteResponseDTO, MessageCreateDTO, MessageReadDTO
-from src.models.entities import User
 
 router = APIRouter(prefix="/messages", tags=["messages"])
 

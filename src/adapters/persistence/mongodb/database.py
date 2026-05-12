@@ -12,7 +12,15 @@ from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError
 
 from src.core.config import get_settings
-from src.models.entities import Category, Listing, ListingImage, ListingStatus, Message, Role, User
+from src.domain.entities import (
+    Category,
+    Listing,
+    ListingImage,
+    ListingStatus,
+    Message,
+    Role,
+    User,
+)
 
 try:  # pragma: no cover - optional test dependency
     import mongomock
@@ -164,9 +172,6 @@ def serialize(entity: Any) -> dict[str, Any]:
         raise TypeError(f"Unsupported entity type: {type(entity)!r}")
     payload = asdict(entity)
     payload.pop("images", None)
-    payload.pop("owner_name", None)
-    payload.pop("sender_name", None)
-    payload.pop("recipient_name", None)
     payload["_id"] = payload["id"]
     if isinstance(entity, User):
         payload["role"] = entity.role.value
@@ -237,18 +242,27 @@ def get_db() -> Generator[DatabaseSession, None, None]:
 def initialize_database(target_database: Database | None = None) -> None:
     active_database = target_database or database
     existing_collections = set(active_database.list_collection_names())
-    for collection_name in ("users", "categories", "listings", "listing_images", "messages"):
+    for collection_name in (
+        "users",
+        "categories",
+        "listings",
+        "listing_images",
+        "messages",
+    ):
         if collection_name not in existing_collections:
             active_database.create_collection(collection_name)
     active_database["users"].create_index([("email", ASCENDING)], unique=True)
     active_database["categories"].create_index([("name", ASCENDING)], unique=True)
-    active_database["listings"].create_index([("status", ASCENDING), ("created_at", DESCENDING)])
+    active_database["listings"].create_index(
+        [("status", ASCENDING), ("created_at", DESCENDING)]
+    )
     active_database["listing_images"].create_index(
         [("listing_id", ASCENDING), ("position", ASCENDING)]
     )
     active_database["messages"].create_index(
         [("listing_id", ASCENDING), ("created_at", DESCENDING)]
     )
+
     logger.info(
         "MongoDB initialized database=%s collections=%s",
         active_database.name,

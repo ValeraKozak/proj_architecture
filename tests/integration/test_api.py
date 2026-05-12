@@ -1,4 +1,4 @@
-from src.models.entities import Listing, ListingStatus, Role
+from src.domain.entities import Listing, ListingStatus, Role
 from tests.conftest import auth_header
 
 
