@@ -7,6 +7,7 @@ from src.application.ports.repositories import (
     UnitOfWorkPort,
     UserRepositoryPort,
 )
+from src.application.read_models import ListingDetails
 from src.domain.entities import Listing, ListingImage, ListingStatus, Role, User
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class ListingApplicationService:
         category_id: int,
         image_urls: list[str],
         owner: User,
-    ) -> Listing:
+    ) -> ListingDetails:
         if owner.is_blocked:
             raise ForbiddenError("Blocked users cannot post")
         if self.categories.get(category_id) is None:
@@ -65,7 +66,7 @@ class ListingApplicationService:
         category_id: int | None,
         image_urls: list[str] | None,
         owner: User,
-    ) -> Listing:
+    ) -> ListingDetails:
         listing = self._get_owned_listing(listing_id, owner.id)
         if category_id is not None and self.categories.get(category_id) is None:
             raise NotFoundError("Category not found")
@@ -96,7 +97,7 @@ class ListingApplicationService:
         max_price: float | None = None,
         sort_by: str = "created_at",
         sort_order: str = "desc",
-    ) -> list[Listing]:
+    ) -> list[ListingDetails]:
         if min_price is not None and max_price is not None and min_price > max_price:
             raise ValidationError("min_price cannot be greater than max_price")
         listings = self.listings.list_visible(
@@ -109,7 +110,11 @@ class ListingApplicationService:
         )
         return self._enrich_listings(listings)
 
-    def get_by_id(self, listing_id: int, current_user: User | None = None) -> Listing:
+    def get_by_id(
+        self,
+        listing_id: int,
+        current_user: User | None = None,
+    ) -> ListingDetails:
         listing = self.listings.get(listing_id)
         if listing is None:
             raise NotFoundError("Listing not found")
@@ -123,10 +128,10 @@ class ListingApplicationService:
             return listing
         raise NotFoundError("Listing not found")
 
-    def get_owned(self, owner: User) -> list[Listing]:
+    def get_owned(self, owner: User) -> list[ListingDetails]:
         return self._enrich_listings(self.listings.list_owned(owner.id))
 
-    def get_for_moderation(self) -> list[Listing]:
+    def get_for_moderation(self) -> list[ListingDetails]:
         return self._enrich_listings(self.listings.list_for_moderation())
 
     def delete(self, listing_id: int, owner: User) -> None:
@@ -150,11 +155,24 @@ class ListingApplicationService:
             for index, image_url in enumerate(image_urls)
         ]
 
-    def _enrich_listing(self, listing: Listing) -> Listing:
+    def _enrich_listing(self, listing: Listing) -> ListingDetails:
+        owner_name = None
         if listing.owner_id is not None:
             owner = self.users.get(listing.owner_id)
-            listing.owner_name = owner.full_name if owner is not None else None
-        return listing
+            owner_name = owner.full_name if owner is not None else None
+        return ListingDetails(
+            id=listing.id,
+            title=listing.title,
+            description=listing.description,
+            price=listing.price,
+            status=listing.status,
+            rejection_reason=listing.rejection_reason,
+            owner_id=listing.owner_id,
+            owner_name=owner_name,
+            category_id=listing.category_id,
+            created_at=listing.created_at,
+            image_urls=listing.image_urls,
+        )
 
-    def _enrich_listings(self, listings: list[Listing]) -> list[Listing]:
+    def _enrich_listings(self, listings: list[Listing]) -> list[ListingDetails]:
         return [self._enrich_listing(listing) for listing in listings]

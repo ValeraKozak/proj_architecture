@@ -7,6 +7,7 @@ from src.application.ports.repositories import (
     UnitOfWorkPort,
     UserRepositoryPort,
 )
+from src.application.read_models import MessageDetails
 from src.domain.entities import ListingStatus, Message, User
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,14 @@ class MessageApplicationService:
         self.users = users
         self.uow = uow
 
-    def send(self, *, listing_id: int, recipient_id: int, body: str, sender: User) -> Message:
+    def send(
+        self,
+        *,
+        listing_id: int,
+        recipient_id: int,
+        body: str,
+        sender: User,
+    ) -> MessageDetails:
         if sender.is_blocked:
             raise ForbiddenError("Blocked users cannot send messages")
         if sender.id == recipient_id:
@@ -54,29 +62,42 @@ class MessageApplicationService:
         )
         return message
 
-    def list_user_messages(self, user_id: int) -> list[Message]:
+    def list_user_messages(self, user_id: int) -> list[MessageDetails]:
         return self._enrich_messages(self.messages.list_for_user(user_id))
 
-    def get_user_message(self, message_id: int, user_id: int) -> Message:
+    def get_user_message(self, message_id: int, user_id: int) -> MessageDetails:
         message = self.messages.get_for_user(message_id, user_id)
         if message is None:
             raise NotFoundError("Message not found")
         return self._enrich_message(message)
 
     def delete_user_message(self, message_id: int, user_id: int) -> None:
-        message = self.get_user_message(message_id, user_id)
+        message = self.messages.get_for_user(message_id, user_id)
+        if message is None:
+            raise NotFoundError("Message not found")
         self.messages.delete(message)
         self.uow.commit()
         logger.info("Message deleted message_id=%s user_id=%s", message_id, user_id)
 
-    def _enrich_message(self, message: Message) -> Message:
+    def _enrich_message(self, message: Message) -> MessageDetails:
+        sender_name = None
         if message.sender_id is not None:
             sender = self.users.get(message.sender_id)
-            message.sender_name = sender.full_name if sender is not None else None
+            sender_name = sender.full_name if sender is not None else None
+        recipient_name = None
         if message.recipient_id is not None:
             recipient = self.users.get(message.recipient_id)
-            message.recipient_name = recipient.full_name if recipient is not None else None
-        return message
+            recipient_name = recipient.full_name if recipient is not None else None
+        return MessageDetails(
+            id=message.id,
+            listing_id=message.listing_id,
+            sender_id=message.sender_id,
+            sender_name=sender_name,
+            recipient_id=message.recipient_id,
+            recipient_name=recipient_name,
+            body=message.body,
+            created_at=message.created_at,
+        )
 
-    def _enrich_messages(self, messages: list[Message]) -> list[Message]:
+    def _enrich_messages(self, messages: list[Message]) -> list[MessageDetails]:
         return [self._enrich_message(message) for message in messages]

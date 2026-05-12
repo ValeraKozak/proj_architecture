@@ -176,13 +176,9 @@ src/
     common/
     ports/
     services/
-  controllers/
   core/
-  db/
   domain/
   dto/
-  models/
-  repositories/
 frontend/
   src/
 docs/
@@ -249,7 +245,7 @@ Storage:
 - локальне збереження зображень;
 - повернення URL для frontend/backend.
 
-### 10.4 Controllers
+### 10.4 HTTP adapters
 Кожен controller:
 - отримує DTO;
 - викликає application service;
@@ -777,9 +773,9 @@ npm run build
 - збережено сумісність із числовими `id`.
 
 ## 26. Технічні компроміси
-- Mongo adapter наразі спирається на внутрішній `DatabaseSession` та repository-wrapper шар;
-- у кодовій базі ще присутні legacy каталоги `models`, `repositories`, `services`, але активний потік проходить через `application` + `adapters`;
-- частина UML описує цільову архітектурну модель, а не legacy-модулі, які лишилися для сумісності.
+- Mongo adapter наразі спирається на внутрішній `DatabaseSession`, який живе всередині persistence adapter boundary;
+- file upload storage поки реалізовано локально, без окремого хмарного storage adapter;
+- frontend використовує локальний state у `App.tsx`, без окремого store-рівня.
 
 ## 27. Рекомендовані напрями розвитку
 - винести frontend state management у окремий store при зростанні складності;
@@ -797,7 +793,7 @@ npm run build
 - [src/application/services/listings.py](</e:/архітПЗ/l3/src/application/services/listings.py>)
 - [src/adapters/http/security.py](</e:/архітПЗ/l3/src/adapters/http/security.py>)
 - [src/adapters/persistence/mongodb/repositories.py](</e:/архітПЗ/l3/src/adapters/persistence/mongodb/repositories.py>)
-- [src/db/database.py](</e:/архітПЗ/l3/src/db/database.py>)
+- [src/adapters/persistence/mongodb/database.py](</e:/архітПЗ/l3/src/adapters/persistence/mongodb/database.py>)
 - [frontend/src/App.tsx](</e:/архітПЗ/l3/frontend/src/App.tsx>)
 - [frontend/src/lib/api.ts](</e:/архітПЗ/l3/frontend/src/lib/api.ts>)
 - [frontend/src/styles.css](</e:/архітПЗ/l3/frontend/src/styles.css>)
